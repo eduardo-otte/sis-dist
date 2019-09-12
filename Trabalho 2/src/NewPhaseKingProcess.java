@@ -21,11 +21,14 @@ public class PhaseKingProcess extends Thread {
 
     // Message
     private String value;
-    
-
+        
     // Encryption
     private ArrayList<PublicKey> publicKeys;
     private PrivateKey privateKey;
+    private PublicKey publicKey;
+    private ArrayList<String> newPublicKeys =  new ArrayList<String>();
+    
+    private boolean warmUpEnded = false;
 
     PhaseKingProcess(int _pid, String _value, int _port, String inetAddress, ArrayList<PublicKey> _publicKeys, PrivateKey _privateKey) {
         pid = _pid;
@@ -33,7 +36,10 @@ public class PhaseKingProcess extends Thread {
         port = _port;
         publicKeys = _publicKeys;
         privateKey = _privateKey;
+        publicKey = _publicKeys.get(_pid);
         numberOfProcesses = publicKeys.size();
+        
+        
 
         // TODO: Implement proper warm-up process
         Integer[] pidArray = {0, 1, 2, 3, 4};
@@ -46,12 +52,24 @@ public class PhaseKingProcess extends Thread {
         } catch (Exception e) {
             System.out.print(e.getMessage());
         }
+        
     }
 
     public void run() {
+    	//System.out.println(pid+ ": size of my public key: " + publicKey.toString().length());
+    	//System.out.println(pid+ ": my public key: " + publicKey.toString()+"--------------------");
+    	
     	//WarmUp
-    	warmUp(publicKeys.get(pid),numberOfProcesses);
-        int numberOfFaults = numberOfProcesses / 4;
+    	warmUp();
+    	while(!warmUpEnded) {}
+    	System.out.println(">>>>>>>>Processo " + pid + " terminou warmUp com as chaves ");
+    	//for (int i=0; i<numberOfProcesses; i++) {
+    		//System.out.println("\t"+i+"----->"+newPublicKeys.get(i) );
+    	//}
+    	//System.out.println("***********************");
+    	
+    	/*
+    	int numberOfFaults = numberOfProcesses / 4;
         for(int phase = 0; phase < numberOfFaults + 1; phase++) {
             voteTally = new VoteTally();
 
@@ -85,6 +103,7 @@ public class PhaseKingProcess extends Thread {
         }
 
         System.out.println("Decision for process with id " + pid + " : " + value);
+        */
     }
 
     private void receiveFirstRoundVote(int processId) {
@@ -159,7 +178,7 @@ public class PhaseKingProcess extends Thread {
         }
     }
     
-    private void sendMyKey(String myMessage) {
+    private void sendMyMessage(String myMessage) {
     	byte[] message = myMessage.getBytes();
     	DatagramPacket messageOut = new DatagramPacket(message, message.length, group, port);
         try {
@@ -169,78 +188,105 @@ public class PhaseKingProcess extends Thread {
         }
     }
     
-    private void warmUp(PublicKey myPublicKey, int _numberOfProcesses) {
+    private void warmUp() {
     	/*
-    	 * _publicKeys guarda todas as chaves de processos conhecidos pela tread
-    	 * threadsFinished e hasKeys sao usados para o controle das chaves da thread atual e 
-    	 * para verificar se as outras threads ja receberam todas as chaves
+    	 * _publicKeys: guarda todas as chaves de processos conhecidos pela tread
+    	 * hasKeys: Guarda quais chaves a thread ja conseguiu
+    	 * threadsFinished: Quando uma thread consegue todas as chaves, manda um sinal para as demais
     	 * */
+    	
+    	//messagesto end the function
     	String terminated = "terminated";
-    	String myMessage = pid+ "-" + publicKeys.get(pid);
-    	String finishMessage = pid +"-"+terminated;
+    	String end = "end";
+    	String myKeyMessage = pid+ "-" + publicKey;
+    	String myFinishMessage = pid +"-"+terminated;
+    	String myEndMessage = pid +"-"+end;
     	
+    	//keys
+    	String[] _publicKeys = new String[numberOfProcesses];
+    	_publicKeys[pid] = publicKey.toString();
     	
-    	String[] _publicKeys = new String[_numberOfProcesses];
-    	_publicKeys[pid] = myPublicKey.toString();
-    	
-    	boolean[] threadsFinished = new boolean[_numberOfProcesses]; //if a thread has all keys, send a signal to the others
-    	boolean[] hasKeys = new boolean[_numberOfProcesses]; 
-    	for (int i=0; i<_numberOfProcesses; i++) {
+    	//controll
+    	boolean[] threadsFinished = new boolean[numberOfProcesses]; //if a thread has all keys, send a signal to the others
+    	boolean[] hasKeys = new boolean[numberOfProcesses]; 
+    	for (int i=0; i<numberOfProcesses; i++) {
     		threadsFinished[i] = false;
     		hasKeys[i] = false;
     	}
     	hasKeys[pid] = true;
-    	int threadsFinishedCounter = 0; //how many thread has all keys
-    	int hasKeysCounter = 1; //how many keys the thread has
-    	boolean end = false; // to end the function
+    	int threadsFinishedCounter = 0; 	//how many thread has all keys
+    	int hasKeysCounter = 1; 			//how many keys the thread has
     	
-    	sendMyKey(myMessage);
+    	 // to controll the loop
+    	boolean terminate = false;
+    	boolean canEndEarly = false;
+    	boolean endWarmUp = false;
+    	//Send the first message
+    	sendMyMessage(myKeyMessage);
     	
-        while(!end) { //leave just when every thread has all keys
-        	byte[] buffer = new byte[100];
+        while(!endWarmUp && !canEndEarly) { 		//leave just when every thread has all keys
+        	byte[] buffer = new byte[1200];
             DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
             try {
                 multicastSocket.receive(messageIn);
                 int _pid = Integer.parseInt(new String(messageIn.getData()).trim().split("-")[0]);
-                String rest = new String(messageIn.getData()).trim().split("-")[1];
-                if(rest.equals(terminated)) { 	//Some thread has all the keys
-                	if(threadsFinished[_pid] == false) {
-                		threadsFinished[_pid] = true;
-                		threadsFinishedCounter++;
-                		if(threadsFinishedCounter == _numberOfProcesses) {
-                    		end=true;
-                    	}
-                	}
-                	System.out.println(pid+ " tem " + threadsFinishedCounter + " processos terminados:");
-                }
                 
-                else {	//some thread sent its key
-                	if(_pid!=pid) {
-                		sendMyKey(myMessage);
-                	}
-                	if(hasKeys[_pid] == false) {
-                		String newkey = new String(messageIn.getData()).trim().split("-")[1];
-                		_publicKeys[_pid] = newkey;
-                		hasKeys[_pid] = true;
-                		hasKeysCounter++;
-                		System.out.println(pid +" got key from "+_pid);
-                		System.out.println(pid +" has " +hasKeysCounter + " keys ");
-                		if(hasKeysCounter == _numberOfProcesses) {
-                			sendMyKey(finishMessage);
-                			System.out.println(pid +" enviou terminated");
+                if(pid!=_pid) { 			//just verify the message if it's not from the current thread
+                	String rest = new String(messageIn.getData()).trim().split("-")[1]; //terminate, end or key
+                    if(rest.equals(terminated)) { 				//When some thread has all the keys
+                    	if(threadsFinished[_pid] == false) {	//update list of finished threads
+                    		threadsFinished[_pid] = true;
+                    		threadsFinishedCounter++;
+                    		if(threadsFinishedCounter == numberOfProcesses) {	//every task has all keys
+                    			System.out.println(pid+ " got all signals and will send the message to end");
+                    			endWarmUp=true;	
+                    			canEndEarly = true;
+                    		}
                     	}
-                	}
-                	
+                    }
+                    else if(rest.equals(end)) { 	//Got the signal that all threads have all keys
+                    	System.out.println(pid+ " got the message to end from "+_pid);
+                    	canEndEarly=true;
+                    }
+                    else {	//some thread sent its key
+                    	sendMyMessage(myKeyMessage); 
+                    	if(hasKeys[_pid] == false) {	//if this thread doesn't has the key, it will save it and increment the counter 
+                    		String newkey = new String(messageIn.getData()).trim().split("-")[1];
+                    		_publicKeys[_pid] = newkey;
+                    		hasKeys[_pid] = true;
+                    		hasKeysCounter++;
+                    		if(hasKeysCounter == numberOfProcesses) {
+                    			System.out.println(pid +" terminated");
+                    			terminate = true;
+                    			threadsFinished[pid] = true;
+                    			threadsFinishedCounter++;
+                    			
+                    			if(threadsFinishedCounter == numberOfProcesses) {	//every task has all keys
+                        			canEndEarly=true;	
+                        		}
+                            }
+                    	}
+                    }
+                    if(terminate) {
+                    	sendMyMessage(myFinishMessage);
+                    }
+                    if(canEndEarly) {
+                    	sendMyMessage(myEndMessage);
+                    }
                 }
             } 
             catch (IOException e) {
                 System.out.println("Exception while receiving key decision: " + e.getMessage());
             }  
         }
-        System.out.print("Processo" + pid + "tem as chaves: ");
-        for (int i=0; i<_numberOfProcesses; i++) {
-        	System.out.print(i+"-"+_publicKeys[i] );
+        
+        for (int i=0; i<numberOfProcesses; i++) {
+        	newPublicKeys.add(_publicKeys[i]);
     	}
+        warmUpEnded = true;
+        
+    	//System.out.println("--------------Processo " + pid + " terminou warmUp ");
+
     }
 }
 
