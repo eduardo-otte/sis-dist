@@ -228,9 +228,10 @@ public class PhaseKingProcess extends Thread {
         	byte[] buffer = new byte[1200];
             DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
             try {
+            	
                 multicastSocket.receive(messageIn);
                 int _pid = Integer.parseInt(new String(messageIn.getData()).trim().split("-")[0]);
-                
+                //System.out.println(pid+ " is waiting");
                 if(pid!=_pid) { 			//just verify the message if it's not from the current thread
                 	String rest = new String(messageIn.getData()).trim().split("-")[1]; //terminate, end or key
                     if(rest.equals(terminated)) { 				//When some thread has all the keys
@@ -261,9 +262,10 @@ public class PhaseKingProcess extends Thread {
                     			threadsFinished[pid] = true;
                     			threadsFinishedCounter++;
                     			
-                    			if(threadsFinishedCounter == numberOfProcesses) {	//every task has all keys
-                        			canEndEarly=true;	
-                        		}
+								/*
+								 * if(threadsFinishedCounter == numberOfProcesses) { //every task has all keys
+								 * canEndEarly=true; }
+								 */
                             }
                     	}
                     }
@@ -283,6 +285,11 @@ public class PhaseKingProcess extends Thread {
         for (int i=0; i<numberOfProcesses; i++) {
         	newPublicKeys.add(_publicKeys[i]);
     	}
+        int limite = 100;
+        for (int i=0; i<limite; i++) {
+        	sendMyMessage(myEndMessage); //so p garantir...
+    	}
+        
         warmUpEnded = true;
         
     	//System.out.println("--------------Processo " + pid + " terminou warmUp ");
