@@ -1,3 +1,4 @@
+import javax.crypto.Cipher;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class PhaseKingProcess extends Thread {
     private int pid;
     private int numberOfProcesses;
+    private int numberOfFaults;
     private ArrayList<Integer> knowProcesses;
     private VoteTally voteTally;
 
@@ -25,9 +27,10 @@ public class PhaseKingProcess extends Thread {
         
     // Encryption
     private ArrayList<PublicKey> publicKeys = new ArrayList<PublicKey>();
-    private PrivateKey privateKey;
-    private PublicKey publicKey;
     private ArrayList<String> publicKeysStrings =  new ArrayList<String>();
+    private PublicKey publicKey;
+    private PrivateKey privateKey;
+    Cipher cipher;
     
     private volatile boolean warmUpEnded = false;
 
@@ -36,6 +39,7 @@ public class PhaseKingProcess extends Thread {
         value = _value;
         port = _port;
         numberOfProcesses = _numberOfProcesses;
+        numberOfFaults = numberOfProcesses/4;
         
         generateKeyPair();
         
@@ -99,7 +103,7 @@ public class PhaseKingProcess extends Thread {
             if(phase == pid) {
                 sendPhaseKingDecision();
             } else {
-                receivePhaseKingDecision();
+                receivePhaseKingDecision(phase);
             }
         }
 
@@ -145,25 +149,49 @@ public class PhaseKingProcess extends Thread {
         String mostVoted = voteTally.getMostVoted();
         int mostVotes = voteTally.getVotesFor(mostVoted);
 
-        //TODO: Turn into object member
-        int numberOfFaults = numberOfProcesses/4;
-
-        //TODO: Implement signature by encryption
         if(mostVotes > numberOfProcesses/2 + numberOfFaults) {
             value = mostVoted;
         }
-        sendMessage(value);
+
+        try {
+            Signature signature = Signature.getInstance("SHA256withDSA");
+            signature.initSign(privateKey);
+            signature.update(value.getBytes());
+            byte[] messageSignature = signature.sign();
+
+            String message = value + ":" + new String(messageSignature);
+            sendMessage(message);
+        } catch (Exception e) {
+            System.out.println("Exception thrown when signing Phase King decision: " + e.getMessage());
+        }
     }
 
-    private void receivePhaseKingDecision() {
+    private void receivePhaseKingDecision(int phaseKingPid) {
         byte[] buffer = new byte[100];
         DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
 
-        //TODO: Implement signature by encryption
         try {
             multicastSocket.receive(messageIn);
-            value = new String(messageIn.getData()).trim().split(":")[1];
-        } catch (IOException e) {
+
+            int senderPid = Integer.parseInt(new String(messageIn.getData()).trim().split(":")[0]);
+            String messageContent = new String(messageIn.getData()).trim().split(":")[1];
+            byte[] messageSignature = new String(messageIn.getData()).trim().split(":")[2].getBytes();
+
+            if(phaseKingPid != senderPid) {
+                throw new Exception("Process " + pid + " received Phase King decision with unexpected pid");
+            }
+
+            Signature signature = Signature.getInstance("SHA256withDSA");
+            signature.initVerify(publicKeys.get(phaseKingPid));
+            signature.update(messageContent.getBytes());
+            if(signature.verify(messageSignature)) {
+                System.out.println("Process " + pid + " verified signature for received Phase King decision");
+            } else {
+                throw new Exception("Process " + pid + " failed to verify signature for received Phase King decision");
+            }
+
+            value = messageContent;
+        } catch (Exception e) {
             System.out.println("Exception while receiving phase king decision: " + e.getMessage());
         }
     }
