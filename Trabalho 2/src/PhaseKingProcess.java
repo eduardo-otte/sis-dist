@@ -3,6 +3,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.security.*;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -56,7 +57,9 @@ public class PhaseKingProcess extends Thread {
     public void run() {
     	warmUp();
         while (!warmUpEnded) { Thread.onSpinWait(); }
-    		
+
+        decodePublicKeys();
+
 		System.out.println(pid+ " sleeping...");
 		try {
 			TimeUnit.MILLISECONDS.sleep(5000);
@@ -198,6 +201,24 @@ public class PhaseKingProcess extends Thread {
             //publicKeys.set(pid, publicKey);
         } catch (Exception e) {
             System.out.println("Exception found when generating key pair: " + e.getMessage());
+        }
+    }
+
+    private void decodePublicKeys() {
+        KeyFactory keyFactory;
+
+        try {
+            keyFactory = KeyFactory.getInstance("DSA", "SUN");
+
+            for(int i = 0; i < publicKeysStrings.size(); i++) {
+                String key = publicKeysStrings.get(i);
+                byte[] decodedBytes = Base64.getDecoder().decode(key);
+
+                X509EncodedKeySpec spec = new X509EncodedKeySpec(decodedBytes);
+                publicKeys.set(i, keyFactory.generatePublic(spec));
+            }
+        } catch (Exception e) {
+            System.out.println("Exception when decoding public keys: " + e.getMessage());
         }
     }
     
