@@ -66,7 +66,7 @@ public class PhaseKingProcess extends Thread {
             voteTally = new VoteTally();
 
             // First round
-            System.out.println("Begin first round");
+            System.out.println(pid + ": Begin first round");
             for(int i : knownProcesses) {
                 if(i == pid) {
                     try {
@@ -82,11 +82,11 @@ public class PhaseKingProcess extends Thread {
             }
 
             String mostVoted = voteTally.getMostVoted();
-            System.out.println("Voting finished");
-            System.out.println("Most voted: " + mostVoted + " : " + voteTally.getVotesFor(mostVoted));
+            System.out.println(pid + ": Voting finished");
+            System.out.println(pid + ": Most voted: " + mostVoted + " : " + voteTally.getVotesFor(mostVoted));
 
             // Second round
-            System.out.println("Begin second round");
+            System.out.println(pid + ": Begin second round");
             if(phase == pid) {
                 sendPhaseKingDecision();
             } else {
