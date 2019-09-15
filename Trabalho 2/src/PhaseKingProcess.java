@@ -2,8 +2,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -25,14 +24,18 @@ public class PhaseKingProcess extends Thread {
     // Encryption
     private ArrayList<PublicKey> publicKeys;
     private PrivateKey privateKey;
+    private PublicKey publicKey;
+    private ArrayList<String> publicKeysStrings =  new ArrayList<String>();
 
-    PhaseKingProcess(int _pid, String _value, int _port, String inetAddress, ArrayList<PublicKey> _publicKeys, PrivateKey _privateKey) {
+    private volatile boolean warmUpEnded = false;
+
+    PhaseKingProcess(int _pid, String _value, int _port, String inetAddress, int _numberOfProcesses) {
         pid = _pid;
         value = _value;
         port = _port;
-        publicKeys = _publicKeys;
-        privateKey = _privateKey;
-        numberOfProcesses = publicKeys.size();
+        numberOfProcesses = _numberOfProcesses;
+
+        generateKeyPair();
 
         // TODO: Implement proper warm-up process
         Integer[] pidArray = {0, 1, 2, 3, 4};
@@ -48,7 +51,13 @@ public class PhaseKingProcess extends Thread {
     }
 
     public void run() {
-        int numberOfFaults = numberOfProcesses / 4;
+        // Warm up
+        warmUp();
+        while(!warmUpEnded) { Thread.onSpinWait(); }
+        System.out.println(">>>>>>>> Process " + pid + " finished warm up");
+
+        // First round
+    	int numberOfFaults = numberOfProcesses / 4;
         for(int phase = 0; phase < numberOfFaults + 1; phase++) {
             voteTally = new VoteTally();
 
@@ -155,4 +164,123 @@ public class PhaseKingProcess extends Thread {
             System.out.println(e.getMessage());
         }
     }
+
+    private void sendMyMessage(String myMessage) {
+        byte[] message = myMessage.getBytes();
+        DatagramPacket messageOut = new DatagramPacket(message, message.length, group, port);
+        try {
+            multicastSocket.send(messageOut);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void generateKeyPair() {
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DSA", "SUN");
+            SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG", "SUN");
+            keyPairGenerator.initialize(1024, secureRandom);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            privateKey = keyPair.getPrivate();
+            publicKey = keyPair.getPublic();
+            publicKeys.set(pid, publicKey);
+        } catch (Exception e) {
+            System.out.println("Exception found when generating key pair: " + e.getMessage());
+        }
+    }
+
+    private void warmUp() {
+        /*
+         * _publicKeys: guarda todas as chaves de processos conhecidos pela tread
+         * hasKeys: Guarda quais chaves a thread ja conseguiu
+         * threadsFinished: Quando uma thread consegue todas as chaves, manda um sinal para as demais
+         * */
+
+        // Messages to end the function
+        String terminated = "terminated";
+        String end = "end";
+        String myKeyMessage = pid + "-" + publicKey;
+        String myFinishMessage = pid + "-" + terminated;
+        String myEndMessage = pid +"-"+end;
+
+        // Keys
+        String[] _publicKeys = new String[numberOfProcesses];
+        _publicKeys[pid] = publicKey.toString();
+
+        // Control
+        boolean[] threadsFinished = new boolean[numberOfProcesses];
+        Arrays.fill(threadsFinished, false);
+
+        boolean[] hasKeys = new boolean[numberOfProcesses];
+        Arrays.fill(hasKeys, false);
+
+        hasKeys[pid] = true;
+        int threadsFinishedCounter = 0;
+        int hasKeysCounter = 1;
+
+        boolean terminate = false;
+        boolean canEndEarly = false;
+        boolean endWarmUp = false;
+
+        //Send the first message
+        sendMyMessage(myKeyMessage);
+
+        while(!endWarmUp && !canEndEarly) {
+            byte[] buffer = new byte[1200];
+            DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
+
+            try {
+                multicastSocket.receive(messageIn);
+                int sender_pid = Integer.parseInt(new String(messageIn.getData()).trim().split("-")[0]);
+                if(pid != sender_pid) {
+                    String message_content = new String(messageIn.getData()).trim().split("-")[1];
+                    if(message_content.equals(terminated)) {
+                        if(!threadsFinished[sender_pid]) {
+                            threadsFinished[sender_pid] = true;
+                            threadsFinishedCounter++;
+                            if(threadsFinishedCounter == numberOfProcesses) {
+                                System.out.println(pid + " got all signals and will send the message to end");
+                                endWarmUp = true;
+                                canEndEarly = true;
+                            }
+                        }
+                    }
+                    else if(message_content.equals(end)) {
+                        System.out.println(pid + " got the message to end from " + sender_pid);
+                        canEndEarly=true;
+                    }
+                    else {
+                        sendMyMessage(myKeyMessage);
+                        if(!hasKeys[sender_pid]) {
+                            String newKey = new String(messageIn.getData()).trim().split("-")[1];
+                            _publicKeys[sender_pid] = newKey;
+                            hasKeys[sender_pid] = true;
+                            hasKeysCounter++;
+                            if(hasKeysCounter == numberOfProcesses) {
+                                System.out.println(pid +" terminated");
+                                terminate = true;
+                                threadsFinished[pid] = true;
+                                threadsFinishedCounter++;
+                            }
+                        }
+                    }
+                    if(terminate) {
+                        sendMyMessage(myFinishMessage);
+                    }
+                    if(canEndEarly) {
+                        sendMyMessage(myEndMessage);
+                    }
+                }
+            }
+            catch (IOException e) {
+                System.out.println("Exception while receiving key decision: " + e.getMessage());
+            }
+        }
+
+        publicKeysStrings.addAll(Arrays.asList(_publicKeys).subList(0, numberOfProcesses));
+        warmUpEnded = true;
+    }
 }
+
+
