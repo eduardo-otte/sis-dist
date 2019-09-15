@@ -1,4 +1,3 @@
-import javax.crypto.Cipher;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -14,7 +13,7 @@ public class PhaseKingProcess extends Thread {
     private int pid;
     private int numberOfProcesses;
     private int numberOfFaults;
-    private ArrayList<Integer> knowProcesses;
+    private ArrayList<Integer> knownProcesses;
     private VoteTally voteTally;
 
     // Connection
@@ -26,11 +25,10 @@ public class PhaseKingProcess extends Thread {
     private String value;
         
     // Encryption
-    private ArrayList<PublicKey> publicKeys = new ArrayList<PublicKey>();
-    private ArrayList<String> publicKeysStrings =  new ArrayList<String>();
+    private ArrayList<PublicKey> publicKeys = new ArrayList<>();
+    private ArrayList<String> publicKeysStrings =  new ArrayList<>();
     private PublicKey publicKey;
     private PrivateKey privateKey;
-    Cipher cipher;
     
     private volatile boolean warmUpEnded = false;
 
@@ -42,11 +40,10 @@ public class PhaseKingProcess extends Thread {
         numberOfFaults = numberOfProcesses/4;
         
         generateKeyPair();
-        
-     
+
         // TODO: Implement proper warm-up process
         Integer[] pidArray = {0, 1, 2, 3, 4};
-        knowProcesses = new ArrayList<>(Arrays.asList(pidArray));
+        knownProcesses = new ArrayList<>(Arrays.asList(pidArray));
 
         try {
             group = InetAddress.getByName(inetAddress);
@@ -66,21 +63,20 @@ public class PhaseKingProcess extends Thread {
 
 		System.out.println(pid+ " sleeping...");
 		try {
-			TimeUnit.MILLISECONDS.sleep(5000);
+			TimeUnit.MILLISECONDS.sleep(500);
 		} catch(InterruptedException e){
 			System.out.print(e.getMessage()); 
 		}
 		
 		System.out.println(pid + " may begin Phase King protocol");
-    	
-		/*
+
     	int numberOfFaults = numberOfProcesses / 4;
         for(int phase = 0; phase < numberOfFaults + 1; phase++) {
             voteTally = new VoteTally();
 
             // First round
             System.out.println("Begin first round");
-            for(int i : knowProcesses) {
+            for(int i : knownProcesses) {
                 if(i == pid) {
                     try {
                         TimeUnit.SECONDS.sleep(1);
@@ -108,7 +104,6 @@ public class PhaseKingProcess extends Thread {
         }
 
         System.out.println("Decision for process with id " + pid + " : " + value);
-        */
     }
 
     private void receiveFirstRoundVote(int processId) {
@@ -243,7 +238,7 @@ public class PhaseKingProcess extends Thread {
                 byte[] decodedBytes = Base64.getDecoder().decode(key);
 
                 X509EncodedKeySpec spec = new X509EncodedKeySpec(decodedBytes);
-                publicKeys.set(i, keyFactory.generatePublic(spec));
+                publicKeys.add(i, keyFactory.generatePublic(spec));
             }
         } catch (Exception e) {
             System.out.println("Exception when decoding public keys: " + e.getMessage());
