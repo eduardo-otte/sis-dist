@@ -63,6 +63,7 @@ public class PhaseKingProcess extends Thread {
 
     	int numberOfFaults = numberOfProcesses / 4;
         for(int phase = 0; phase < numberOfFaults + 1; phase++) {
+        	cleanBuffer();
             voteTally = new VoteTally();
 
             // First round
@@ -80,7 +81,9 @@ public class PhaseKingProcess extends Thread {
                     receiveFirstRoundVote(i);
                 }
             }
-
+            
+            cleanBuffer();
+            
             String mostVoted = voteTally.getMostVoted();
             System.out.println(pid + ": Voting finished");
             System.out.println(pid + ": Most voted: " + mostVoted + " : " + voteTally.getVotesFor(mostVoted));
@@ -92,6 +95,7 @@ public class PhaseKingProcess extends Thread {
             } else {
                 receivePhaseKingDecision(phase);
             }
+            cleanBuffer();
         }
 
         System.out.println("Decision for process with id " + pid + " : " + value);
@@ -147,6 +151,7 @@ public class PhaseKingProcess extends Thread {
 
             String message = value + ":" + new String(messageSignature);
             sendMessage(message);
+            System.out.println("Phase King decision signed with sucess");
         } catch (Exception e) {
             System.out.println("Exception thrown when signing Phase King decision: " + e.getMessage());
         }
@@ -175,7 +180,6 @@ public class PhaseKingProcess extends Thread {
             } else {
                 throw new Exception("Process " + pid + " failed to verify signature for received Phase King decision");
             }
-
             value = messageContent;
         } catch (Exception e) {
             System.out.println("Exception while receiving phase king decision: " + e.getMessage());
@@ -272,9 +276,28 @@ public class PhaseKingProcess extends Thread {
         } catch (Exception e) {
             System.out.println("Warm up exception: " + e.getMessage());
         }
-
+        cleanBuffer();
         System.out.println("Process " + pid + " finished warm up");
     }
+    
+    private void cleanBuffer() {
+    	
+    	System.out.println(pid+ ": cleaning buffer...");
+    	
+    	try {
+			byte[] buffer = new byte[1000];
+			multicastSocket.setSoTimeout(100);
+			DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
+			multicastSocket.receive(messageIn);	
+		}catch (Exception e) {
+		    //System.out.println("Exception while receiving key decision: " + e.getMessage());
+		}
+    	try {
+    		multicastSocket.setSoTimeout(0);
+    		TimeUnit.SECONDS.sleep(1);
+		}catch (Exception e) {
+		    //System.out.println("Exception while receiving key decision: " + e.getMessage());
+		}
+    	
+	}
 }
-
-
