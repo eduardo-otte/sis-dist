@@ -27,6 +27,7 @@ public class PhaseKingProcess extends Thread {
     private ArrayList<String> publicKeysStrings =  new ArrayList<>();
     private PublicKey publicKey;
     private PrivateKey privateKey;
+    private PrivateKey newPrivateKey;
 
     PhaseKingProcess(int _pid, String _value, int _port, String inetAddress,int _numberOfProcesses) {
         pid = _pid;
@@ -91,9 +92,9 @@ public class PhaseKingProcess extends Thread {
             // Second round
             System.out.println(pid + ": Begin second round");
             if(phase == pid) {
-                sendPhaseKingDecision();
+                sendPhaseKingDecisionAux();
             } else {
-                receivePhaseKingDecision(phase);
+                receivePhaseKingDecisionAux(phase);
             }
             cleanBuffer();
         }
@@ -130,12 +131,13 @@ public class PhaseKingProcess extends Thread {
     }
 
     private void sendPhaseKingDecision() {
+    	//testPrivateKey();
         try {
             TimeUnit.SECONDS.sleep(1);
         } catch (Exception e) {
             System.out.println("Phase king sending exception: " + e.getMessage());
         }
-
+        
         String mostVoted = voteTally.getMostVoted();
         int mostVotes = voteTally.getVotesFor(mostVoted);
 
@@ -144,14 +146,14 @@ public class PhaseKingProcess extends Thread {
         }
 
         try {
-            Signature signature = Signature.getInstance("SHA256withDSA");
+        	Signature signature = Signature.getInstance("SHA256withDSA");
             signature.initSign(privateKey);
             signature.update(value.getBytes());
             byte[] messageSignature = signature.sign();
 
             String message = value + ":" + new String(messageSignature);
             sendMessage(message);
-            System.out.println("Phase King decision signed with sucess");
+            System.out.println(pid+": Phase King decision signed with sucess");
         } catch (Exception e) {
             System.out.println("Exception thrown when signing Phase King decision: " + e.getMessage());
         }
@@ -167,7 +169,7 @@ public class PhaseKingProcess extends Thread {
             int senderPid = Integer.parseInt(new String(messageIn.getData()).trim().split(":")[0]);
             String messageContent = new String(messageIn.getData()).trim().split(":")[1];
             byte[] messageSignature = new String(messageIn.getData()).trim().split(":")[2].getBytes();
-
+           
             if(phaseKingPid != senderPid) {
                 throw new Exception("Process " + pid + " received Phase King decision with unexpected pid");
             }
@@ -185,7 +187,53 @@ public class PhaseKingProcess extends Thread {
             System.out.println("Exception while receiving phase king decision: " + e.getMessage());
         }
     }
+    
+    private void sendPhaseKingDecisionAux() {
+    	//testPrivateKey();
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (Exception e) {
+            System.out.println("Phase king sending exception: " + e.getMessage());
+        }
+        
+        String mostVoted = voteTally.getMostVoted();
+        int mostVotes = voteTally.getVotesFor(mostVoted);
 
+        if(mostVotes > numberOfProcesses/2 + numberOfFaults) {
+            value = mostVoted;
+        }
+
+        try {
+        	String message = value;
+            sendMessage(message);
+            System.out.println(pid+": Phase King decision signed with sucess");
+        } catch (Exception e) {
+            System.out.println("Exception thrown when signing Phase King decision: " + e.getMessage());
+        }
+    }
+
+    private void receivePhaseKingDecisionAux(int phaseKingPid) {
+        byte[] buffer = new byte[10000];
+        DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
+
+        try {
+            multicastSocket.receive(messageIn);
+
+            int senderPid = Integer.parseInt(new String(messageIn.getData()).trim().split(":")[0]);
+            String messageContent = new String(messageIn.getData()).trim().split(":")[1];
+            
+            if(phaseKingPid == senderPid) {
+            	value = messageContent;
+            }
+            
+            else {
+                throw new Exception("Process " + pid + " received Phase King decision with unexpected pid");
+            }
+        } catch (Exception e) {
+            System.out.println("Exception while receiving phase king decision: " + e.getMessage());
+        }
+    }
+    
     private void sendMessage(String messageValue) {
         String messageString = pid + ":" + messageValue;
         byte[] message = messageString.getBytes();
@@ -197,6 +245,7 @@ public class PhaseKingProcess extends Thread {
         }
     }
     
+    
     private void generateKeyPair() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DSA", "SUN");
@@ -206,12 +255,14 @@ public class PhaseKingProcess extends Thread {
 
             privateKey = keyPair.getPrivate();
             publicKey = keyPair.getPublic();
+            
             //publicKeys.set(pid, publicKey);
         } catch (Exception e) {
             System.out.println("Exception found when generating key pair: " + e.getMessage());
         }
     }
 
+    
     private void decodePublicKeys() {
         KeyFactory keyFactory;
 
@@ -229,7 +280,8 @@ public class PhaseKingProcess extends Thread {
             System.out.println("Exception when decoding public keys: " + e.getMessage());
         }
     }
-
+    
+    
     private void receivePublicKey(int senderPid) {
         try {
             boolean correctMessageReceived = false;
@@ -241,9 +293,6 @@ public class PhaseKingProcess extends Thread {
             while(!correctMessageReceived) {
                 String senderProcess = new String(messageIn.getData()).trim().split(":")[0];
                 String messageContent = new String(messageIn.getData()).trim().split(":")[1];
-
-//                String message = new String(messageIn.getData()).trim();
-//                System.out.println(message);
 
                 if(Integer.parseInt(senderProcess) == senderPid) {
                     knownProcesses.add(senderPid);
@@ -258,15 +307,17 @@ public class PhaseKingProcess extends Thread {
         }
     }
 
+    
     private void warmUp() {
         System.out.println("Process " + pid + " beginning warm up");
+        
         try {
             for(int i = 0; i < numberOfProcesses; i++) {
                 if(i == pid) {
                     TimeUnit.SECONDS.sleep(1);
                     knownProcesses.add(pid);
-                    publicKeysStrings.add(pid, new String(Base64.getEncoder().encode(publicKey.getEncoded())));
-
+                    String encodedKey = Base64.getEncoder().encodeToString(publicKey.getEncoded());
+                    publicKeysStrings.add(pid, encodedKey);
                     System.out.println("Process " + pid + " sending public key");
                     sendMessage(publicKeysStrings.get(pid));
                 } else {
@@ -279,6 +330,7 @@ public class PhaseKingProcess extends Thread {
         cleanBuffer();
         System.out.println("Process " + pid + " finished warm up");
     }
+    
     
     private void cleanBuffer() {
     	
