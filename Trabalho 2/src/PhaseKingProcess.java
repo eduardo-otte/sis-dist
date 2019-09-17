@@ -4,6 +4,7 @@ import java.net.MulticastSocket;
 import java.security.*;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +28,6 @@ public class PhaseKingProcess extends Thread {
     private ArrayList<String> publicKeysStrings =  new ArrayList<>();
     private PublicKey publicKey;
     private PrivateKey privateKey;
-    private PrivateKey newPrivateKey;
 
     PhaseKingProcess(int _pid, String _value, int _port, String inetAddress,int _numberOfProcesses) {
         pid = _pid;
@@ -92,9 +92,9 @@ public class PhaseKingProcess extends Thread {
             // Second round
             System.out.println(pid + ": Begin second round");
             if(phase == pid) {
-                sendPhaseKingDecisionAux();
+                sendPhaseKingDecision();
             } else {
-                receivePhaseKingDecisionAux(phase);
+                receivePhaseKingDecision(phase);
             }
             cleanBuffer();
         }
@@ -146,12 +146,13 @@ public class PhaseKingProcess extends Thread {
         }
 
         try {
-        	Signature signature = Signature.getInstance("SHA256withDSA");
+        	Signature signature = Signature.getInstance("SHA256withRSA");
             signature.initSign(privateKey);
             signature.update(value.getBytes());
             byte[] messageSignature = signature.sign();
 
-            String message = value + ":" + new String(messageSignature);
+            String messageSignatureString = Base64.getEncoder().encodeToString(messageSignature);
+            String message = value + ":" + messageSignatureString;
             sendMessage(message);
             System.out.println(pid+": Phase King decision signed with sucess");
         } catch (Exception e) {
@@ -168,13 +169,15 @@ public class PhaseKingProcess extends Thread {
 
             int senderPid = Integer.parseInt(new String(messageIn.getData()).trim().split(":")[0]);
             String messageContent = new String(messageIn.getData()).trim().split(":")[1];
-            byte[] messageSignature = new String(messageIn.getData()).trim().split(":")[2].getBytes();
+            String messageSignatureString = new String(messageIn.getData()).trim().split(":")[2];
+
+            byte[] messageSignature = Base64.getDecoder().decode(messageSignatureString);
            
             if(phaseKingPid != senderPid) {
                 throw new Exception("Process " + pid + " received Phase King decision with unexpected pid");
             }
 
-            Signature signature = Signature.getInstance("SHA256withDSA");
+            Signature signature = Signature.getInstance("SHA256withRSA");
             signature.initVerify(publicKeys.get(phaseKingPid));
             signature.update(messageContent.getBytes());
             if(signature.verify(messageSignature)) {
@@ -183,52 +186,6 @@ public class PhaseKingProcess extends Thread {
                 throw new Exception("Process " + pid + " failed to verify signature for received Phase King decision");
             }
             value = messageContent;
-        } catch (Exception e) {
-            System.out.println("Exception while receiving phase king decision: " + e.getMessage());
-        }
-    }
-    
-    private void sendPhaseKingDecisionAux() {
-    	//testPrivateKey();
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (Exception e) {
-            System.out.println("Phase king sending exception: " + e.getMessage());
-        }
-        
-        String mostVoted = voteTally.getMostVoted();
-        int mostVotes = voteTally.getVotesFor(mostVoted);
-
-        if(mostVotes > numberOfProcesses/2 + numberOfFaults) {
-            value = mostVoted;
-        }
-
-        try {
-        	String message = value;
-            sendMessage(message);
-            System.out.println(pid+": Phase King decision signed with sucess");
-        } catch (Exception e) {
-            System.out.println("Exception thrown when signing Phase King decision: " + e.getMessage());
-        }
-    }
-
-    private void receivePhaseKingDecisionAux(int phaseKingPid) {
-        byte[] buffer = new byte[10000];
-        DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
-
-        try {
-            multicastSocket.receive(messageIn);
-
-            int senderPid = Integer.parseInt(new String(messageIn.getData()).trim().split(":")[0]);
-            String messageContent = new String(messageIn.getData()).trim().split(":")[1];
-            
-            if(phaseKingPid == senderPid) {
-            	value = messageContent;
-            }
-            
-            else {
-                throw new Exception("Process " + pid + " received Phase King decision with unexpected pid");
-            }
         } catch (Exception e) {
             System.out.println("Exception while receiving phase king decision: " + e.getMessage());
         }
@@ -248,15 +205,13 @@ public class PhaseKingProcess extends Thread {
     
     private void generateKeyPair() {
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DSA", "SUN");
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG", "SUN");
             keyPairGenerator.initialize(1024, secureRandom);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
             privateKey = keyPair.getPrivate();
             publicKey = keyPair.getPublic();
-            
-            //publicKeys.set(pid, publicKey);
         } catch (Exception e) {
             System.out.println("Exception found when generating key pair: " + e.getMessage());
         }
@@ -267,7 +222,7 @@ public class PhaseKingProcess extends Thread {
         KeyFactory keyFactory;
 
         try {
-            keyFactory = KeyFactory.getInstance("DSA", "SUN");
+            keyFactory = KeyFactory.getInstance("RSA");
 
             for(int i = 0; i < publicKeysStrings.size(); i++) {
                 String key = publicKeysStrings.get(i);
@@ -341,13 +296,13 @@ public class PhaseKingProcess extends Thread {
 			multicastSocket.setSoTimeout(100);
 			DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
 			multicastSocket.receive(messageIn);	
-		}catch (Exception e) {
+		} catch (Exception e) {
 		    //System.out.println("Exception while receiving key decision: " + e.getMessage());
 		}
     	try {
     		multicastSocket.setSoTimeout(0);
     		TimeUnit.SECONDS.sleep(1);
-		}catch (Exception e) {
+		} catch (Exception e) {
 		    //System.out.println("Exception while receiving key decision: " + e.getMessage());
 		}
     	
