@@ -1,10 +1,10 @@
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.security.*;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +34,7 @@ public class PhaseKingProcess extends Thread {
         value = _value;
         port = _port;
         numberOfProcesses = _numberOfProcesses;
-        numberOfFaults = numberOfProcesses/4;
+        numberOfFaults = numberOfProcesses / 4;
         
         generateKeyPair();
 
@@ -48,12 +48,14 @@ public class PhaseKingProcess extends Thread {
         
     }
 
+    /**
+     * Inicia a thread. Contém implementação do protocolo Phase King
+     */
     public void run() {
     	warmUp();
-
         decodePublicKeys();
 
-		System.out.println(pid+ " sleeping...");
+		// Intervalo para manter sincronização entre as threads
 		try {
 			TimeUnit.MILLISECONDS.sleep(500);
 		} catch(InterruptedException e){
@@ -62,7 +64,7 @@ public class PhaseKingProcess extends Thread {
 		
 		System.out.println(pid + " may begin Phase King protocol");
 
-    	int numberOfFaults = numberOfProcesses / 4;
+		// Inicio do Phase King
         for(int phase = 0; phase < numberOfFaults + 1; phase++) {
         	cleanBuffer();
             voteTally = new VoteTally();
@@ -72,6 +74,7 @@ public class PhaseKingProcess extends Thread {
             for(int i : knownProcesses) {
                 if(i == pid) {
                     try {
+                        System.out.println("Process " + pid + " sending vote: " + value);
                         TimeUnit.SECONDS.sleep(1);
                         voteTally.voteFor(value);
                         sendMessage(value);
@@ -102,6 +105,10 @@ public class PhaseKingProcess extends Thread {
         System.out.println("Decision for process with id " + pid + " : " + value);
     }
 
+    /**
+     * Faz a recepção da mensagem multicast que contém o voto de primeira rodada do processo especificado
+     * @param processId ID do processo que espera-se ser autor da mensagem
+     */
     private void receiveFirstRoundVote(int processId) {
         try {
             boolean correctMessageReceived = false;
@@ -110,15 +117,17 @@ public class PhaseKingProcess extends Thread {
             DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
             multicastSocket.receive(messageIn);
 
+            // Laço que garante que a mensagem recebida veio do processo correto
             while(!correctMessageReceived) {
                 String senderProcess = new String(messageIn.getData()).trim().split(":")[0];
                 String receivedMessage = new String(messageIn.getData()).trim().split(":")[1];
+                int senderProcessId = Integer.parseInt(senderProcess);
 
-                String message = new String(messageIn.getData()).trim();
-                System.out.println(message);
+//                String message = new String(messageIn.getData()).trim();
+//                System.out.println(message);
 
-                if(Integer.parseInt(senderProcess) == processId) {
-                    System.out.println("Voting for " + receivedMessage);
+                if(senderProcessId == processId) {
+                    System.out.println(pid + ": Voting for " + receivedMessage);
                     voteTally.voteFor(receivedMessage);
                     correctMessageReceived = true;
                 } else {
@@ -130,14 +139,17 @@ public class PhaseKingProcess extends Thread {
         }
     }
 
+    /**
+     * Envia a decisão tomada pelo Phase King, assinando a mensagem
+     */
     private void sendPhaseKingDecision() {
-    	//testPrivateKey();
         try {
             TimeUnit.SECONDS.sleep(1);
         } catch (Exception e) {
             System.out.println("Phase king sending exception: " + e.getMessage());
         }
-        
+
+        // Decide qual valor enviar de acordo com as regras do protocolo
         String mostVoted = voteTally.getMostVoted();
         int mostVotes = voteTally.getVotesFor(mostVoted);
 
@@ -146,20 +158,26 @@ public class PhaseKingProcess extends Thread {
         }
 
         try {
+            // Gera assinatura
         	Signature signature = Signature.getInstance("SHA256withRSA");
             signature.initSign(privateKey);
             signature.update(value.getBytes());
             byte[] messageSignature = signature.sign();
 
+            // Envia mensagem no formato pid:valor:assinatura
             String messageSignatureString = Base64.getEncoder().encodeToString(messageSignature);
             String message = value + ":" + messageSignatureString;
             sendMessage(message);
-            System.out.println(pid+": Phase King decision signed with sucess");
+            System.out.println(pid + ": Phase King decision signed successfully");
         } catch (Exception e) {
             System.out.println("Exception thrown when signing Phase King decision: " + e.getMessage());
         }
     }
 
+    /**
+     * Recebe a decisão tomada pelo Phase King, e verifica sua assinatura
+     * @param phaseKingPid ID do processo que é o atual Phase King
+     */
     private void receivePhaseKingDecision(int phaseKingPid) {
         byte[] buffer = new byte[10000];
         DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
@@ -172,25 +190,36 @@ public class PhaseKingProcess extends Thread {
             String messageSignatureString = new String(messageIn.getData()).trim().split(":")[2];
 
             byte[] messageSignature = Base64.getDecoder().decode(messageSignatureString);
+            String mostVoted = voteTally.getMostVoted();
            
             if(phaseKingPid != senderPid) {
                 throw new Exception("Process " + pid + " received Phase King decision with unexpected pid");
             }
 
+            // Verifica assinatura
             Signature signature = Signature.getInstance("SHA256withRSA");
             signature.initVerify(publicKeys.get(phaseKingPid));
             signature.update(messageContent.getBytes());
             if(signature.verify(messageSignature)) {
                 System.out.println("Process " + pid + " verified signature for received Phase King decision");
+                if(voteTally.getVotesFor(mostVoted) > (numberOfProcesses / 2) + numberOfFaults) {
+                    value = mostVoted;
+                } else {
+                    value = messageContent;
+                }
             } else {
                 throw new Exception("Process " + pid + " failed to verify signature for received Phase King decision");
             }
-            value = messageContent;
         } catch (Exception e) {
             System.out.println("Exception while receiving phase king decision: " + e.getMessage());
         }
     }
-    
+
+    /**
+     * Encapsulamento do envio da mensagem. Envia uma mensagem por comunicação multicast, inserindo o ID do processo
+     * no início
+     * @param messageValue Mensagem a ser enviada
+     */
     private void sendMessage(String messageValue) {
         String messageString = pid + ":" + messageValue;
         byte[] message = messageString.getBytes();
@@ -201,8 +230,10 @@ public class PhaseKingProcess extends Thread {
             System.out.println(e.getMessage());
         }
     }
-    
-    
+
+    /**
+     * Gera par de chaves público/privado para o processo
+     */
     private void generateKeyPair() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -217,7 +248,9 @@ public class PhaseKingProcess extends Thread {
         }
     }
 
-    
+    /**
+     * Transforma as chaves públicas dos outros processos recebidas no formato Base64 e as instancia
+     */
     private void decodePublicKeys() {
         KeyFactory keyFactory;
 
@@ -235,8 +268,11 @@ public class PhaseKingProcess extends Thread {
             System.out.println("Exception when decoding public keys: " + e.getMessage());
         }
     }
-    
-    
+
+    /**
+     * Recebe a chave pública de outro processo, no formato Base64, e salva em uma lista
+     * @param senderPid ID do processo que espera-se enviar sua chave
+     */
     private void receivePublicKey(int senderPid) {
         try {
             boolean correctMessageReceived = false;
@@ -262,7 +298,9 @@ public class PhaseKingProcess extends Thread {
         }
     }
 
-    
+    /**
+     * Realiza o processo de conhecimento e troca de chaves públicas entre os processos
+     */
     private void warmUp() {
         System.out.println("Process " + pid + " beginning warm up");
         
@@ -285,25 +323,26 @@ public class PhaseKingProcess extends Thread {
         cleanBuffer();
         System.out.println("Process " + pid + " finished warm up");
     }
-    
-    
+
+    /**
+     * Limpa o buffer de recepção de mensagens multicast. Evita que as threads leiam suas próprias mensagens.
+     */
     private void cleanBuffer() {
-    	
-    	System.out.println(pid+ ": cleaning buffer...");
-    	
     	try {
-			byte[] buffer = new byte[1000];
-			multicastSocket.setSoTimeout(100);
-			DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
-			multicastSocket.receive(messageIn);	
-		} catch (Exception e) {
-		    //System.out.println("Exception while receiving key decision: " + e.getMessage());
+            byte[] buffer = new byte[1000];
+            multicastSocket.setSoTimeout(300);
+            DatagramPacket messageIn = new DatagramPacket(buffer, buffer.length);
+            multicastSocket.receive(messageIn);
+        } catch (Exception e) {
+    	    if(e.getClass().equals(IOException.class)) {
+                System.out.println("Exception while cleaning buffer, part 1: " + e.getMessage());
+            }
 		}
     	try {
     		multicastSocket.setSoTimeout(0);
     		TimeUnit.SECONDS.sleep(1);
 		} catch (Exception e) {
-		    //System.out.println("Exception while receiving key decision: " + e.getMessage());
+		    System.out.println("Exception while cleaning buffer, resetting timeout: " + e.getMessage());
 		}
     	
 	}

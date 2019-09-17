@@ -6,7 +6,10 @@ public class PhaseKingCoordinator {
     private ArrayList<PhaseKingProcess> processes = new ArrayList<>();
 
     private String[] values = {"1","0","1","1","1"};
-    
+
+    /**
+     * Instancia os processos e inicializa-os
+     */
     public void begin() {
         for(int i = 0; i < numberOfProcesses; i++) {
         	
