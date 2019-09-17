@@ -123,9 +123,6 @@ public class PhaseKingProcess extends Thread {
                 String receivedMessage = new String(messageIn.getData()).trim().split(":")[1];
                 int senderProcessId = Integer.parseInt(senderProcess);
 
-//                String message = new String(messageIn.getData()).trim();
-//                System.out.println(message);
-
                 if(senderProcessId == processId) {
                     System.out.println(pid + ": Voting for " + receivedMessage);
                     voteTally.voteFor(receivedMessage);
