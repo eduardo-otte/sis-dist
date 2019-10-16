@@ -7,35 +7,30 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 public class ServerImpl implements ServerInterface {
-    // jobOfferings = {"company": {"area1": [], "area2": []}}
     private HashMap<String, Curriculum> curriculumHashMap;
     private HashMap<String, JobOffering> jobOfferingHashMap;
-    private HashMap<ApplicantClientInterface,String> subscribedClients;
-    private HashMap<CompanyClientInterface,String> subscribedCompanies;
+    private HashMap<ApplicantClientInterface, String> subscribedClients;
+    private HashMap<CompanyClientInterface, String> subscribedCompanies;
 
     // Search
     public ArrayList<JobOffering> searchJobOffering(JobOffering jobOfferingLookup){
-    	//filtros : área e interesse e salário mínimo pretendido
-
-        ArrayList<JobOffering> jobsFound = new ArrayList<JobOffering>();
+        ArrayList<JobOffering> jobsFound = new ArrayList<>();
         
-        for (Entry<String, JobOffering> job_: jobOfferingHashMap.entrySet()) {
-            JobOffering job = job_.getValue();
-            if(job.getArea().equalsIgnoreCase(jobOfferingLookup.getArea()) &&
-            	job.getSalary() >= jobOfferingLookup.getSalary()) {
-            	jobsFound.add(job);
+        for (Entry<String, JobOffering> jobEntry : jobOfferingHashMap.entrySet()) {
+            JobOffering jobOffering = jobEntry.getValue();
+            if(jobOffering.getArea().equalsIgnoreCase(jobOfferingLookup.getArea()) &&
+            	jobOffering.getSalary() >= jobOfferingLookup.getSalary()) {
+            	jobsFound.add(jobOffering);
             }
         }
         return jobsFound;
 	}
 
     public ArrayList<Curriculum> searchCurriculum(String areaOfInterest){
-    	//filtros : área e interesse 
-    	
-        ArrayList<Curriculum> curriculumFound = new ArrayList<Curriculum>();
+        ArrayList<Curriculum> curriculumFound = new ArrayList<>();
         
-        for (Entry<String, Curriculum> curriculum_: curriculumHashMap.entrySet()) {
-        	Curriculum curriculum = curriculum_.getValue();
+        for (Entry<String, Curriculum> curriculumEntry : curriculumHashMap.entrySet()) {
+        	Curriculum curriculum = curriculumEntry.getValue();
             if(curriculum.getArea().equalsIgnoreCase(areaOfInterest)) {
             	curriculumFound.add(curriculum);
             }
@@ -48,9 +43,10 @@ public class ServerImpl implements ServerInterface {
         if(!curriculumHashMap.containsKey(curriculum.getName())) {
         	curriculumHashMap.put(curriculum.getName(), curriculum);
         }
-
     }
-    /*key for jobOfferingHashMap is "[companyName]-[area]" */
+
+    /* Key for jobOfferingHashMap is "[companyName]-[area]"
+       Move into JavaDoc later */
     public void registerJobOffering(JobOffering jobOffering){
       String key = jobOffering.getCompanyName()+"-"+jobOffering.getArea();
 
@@ -70,18 +66,16 @@ public class ServerImpl implements ServerInterface {
         */
     	
     	if(curriculumHashMap.containsKey(newCurriculum.getName())) {
-			//I don't know if we'll send just what its gonna change, so....
-			
 			Curriculum previousCurriculum = curriculumHashMap.get(newCurriculum.getName());
 			  
-			//if(newCurriculum.getcontact()!=null)
-			previousCurriculum.setContact(newCurriculum.getContact());
-			//if(newCurriculum.getArea()!=null)
-			previousCurriculum.setArea(newCurriculum.getArea());
-			//if(newCurriculum.getWorkload()!=null)
-			previousCurriculum.setWorkload(newCurriculum.getWorkload());
-			//if(newCurriculum.getIntendedSalary()!=null)
-			previousCurriculum.setIntendedSalary(newCurriculum.getIntendedSalary());
+			if(newCurriculum.getContact() != null)
+			    previousCurriculum.setContact(newCurriculum.getContact());
+			if(newCurriculum.getArea() != null)
+			    previousCurriculum.setArea(newCurriculum.getArea());
+			if(newCurriculum.getWorkload() > 0)
+			    previousCurriculum.setWorkload(newCurriculum.getWorkload());
+			if(newCurriculum.getIntendedSalary() > 0.0)
+			    previousCurriculum.setIntendedSalary(newCurriculum.getIntendedSalary());
 		}
     }
 
@@ -94,16 +88,16 @@ public class ServerImpl implements ServerInterface {
         this.salary = salary;
         */
 		
-    	String key = newJobOffering.getCompanyName()+"-"+newJobOffering.getArea();
-    	
+    	String key = newJobOffering.getCompanyName() + "-" + newJobOffering.getArea();
+
     	if(jobOfferingHashMap.containsKey(key)) {
     		JobOffering previousJobOffer = jobOfferingHashMap.get(key);
-    		//if(newJobOffering.getContact()!=null)
-    		previousJobOffer.setContact(newJobOffering.getContact());
-    		//if(newJobOffering.getWorkload()!=null)
-    		previousJobOffer.setWorkload(newJobOffering.getWorkload());
-    		//if(newJobOffering.getSalary()!=null)
-    		previousJobOffer.setSalary(newJobOffering.getSalary());
+    		if(newJobOffering.getContact() != null)
+    		    previousJobOffer.setContact(newJobOffering.getContact());
+    		if(newJobOffering.getWorkload() > 0)
+    		    previousJobOffer.setWorkload(newJobOffering.getWorkload());
+    		if(newJobOffering.getSalary() > 0.0)
+    		    previousJobOffer.setSalary(newJobOffering.getSalary());
     	}	  
 	}
 
