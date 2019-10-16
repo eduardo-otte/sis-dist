@@ -9,7 +9,7 @@ public class ServerImpl implements ServerInterface {
     private HashMap<String, Curriculum> curriculumHashMap;
     private HashMap<String, JobOffering> jobOfferingHashMap;
 
-    private HashMap<String, ArrayList<ApplicantClientInterface>> subscribedClients;
+    private HashMap<String, ArrayList<ApplicantClientInterface>> subscribedApplicants;
     private HashMap<String, ArrayList<CompanyClientInterface>> subscribedCompanies;
 
     // Search
@@ -42,17 +42,29 @@ public class ServerImpl implements ServerInterface {
     public void registerCurriculum(Curriculum curriculum) {
         if(!curriculumHashMap.containsKey(curriculum.getName())) {
         	curriculumHashMap.put(curriculum.getName(), curriculum);
+
+        	if(subscribedCompanies.containsKey(curriculum.getArea())) {
+        	    for(CompanyClientInterface company : subscribedCompanies.get(curriculum.getArea())) {
+        	        company.subscriptionCallback(curriculum);
+                }
+            }
         }
     }
 
     /* Key for jobOfferingHashMap is "[companyName]-[area]"
        Move into JavaDoc later */
     public void registerJobOffering(JobOffering jobOffering){
-      String key = jobOffering.getCompanyName()+"-"+jobOffering.getArea();
+        String key = jobOffering.getCompanyName() + "-" + jobOffering.getArea();
 
-      if(!jobOfferingHashMap.containsKey(key)) {
-    	  jobOfferingHashMap.put(key, jobOffering);
-      }
+        if(!jobOfferingHashMap.containsKey(key)) {
+            jobOfferingHashMap.put(key, jobOffering);
+
+            if(subscribedApplicants.containsKey(jobOffering.getArea())) {
+                for(ApplicantClientInterface applicant : subscribedApplicants.get(jobOffering.getArea())) {
+                    applicant.subscriptionCallback(jobOffering);
+                }
+            }
+        }
     }
 
     // Alter registration
@@ -103,12 +115,12 @@ public class ServerImpl implements ServerInterface {
 
     // Subscriptions
     public void subscribeForJobOfferings(ApplicantClientInterface clientRef, String areaOfInterest) {
-        if(!subscribedClients.containsKey(areaOfInterest)) {
-            subscribedClients.put(areaOfInterest, new ArrayList<>());
+        if(!subscribedApplicants.containsKey(areaOfInterest)) {
+            subscribedApplicants.put(areaOfInterest, new ArrayList<>());
         }
 
-        if(!subscribedClients.get(areaOfInterest).contains(clientRef)) {
-            subscribedClients.get(areaOfInterest).add(clientRef);
+        if(!subscribedApplicants.get(areaOfInterest).contains(clientRef)) {
+            subscribedApplicants.get(areaOfInterest).add(clientRef);
         }
     }
 
