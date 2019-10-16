@@ -1,7 +1,6 @@
 import models.Curriculum;
 import models.JobOffering;
 
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -9,8 +8,9 @@ import java.util.Map.Entry;
 public class ServerImpl implements ServerInterface {
     private HashMap<String, Curriculum> curriculumHashMap;
     private HashMap<String, JobOffering> jobOfferingHashMap;
-    private HashMap<ApplicantClientInterface, String> subscribedClients;
-    private HashMap<CompanyClientInterface, String> subscribedCompanies;
+
+    private HashMap<String, ArrayList<ApplicantClientInterface>> subscribedClients;
+    private HashMap<String, ArrayList<CompanyClientInterface>> subscribedCompanies;
 
     // Search
     public ArrayList<JobOffering> searchJobOffering(JobOffering jobOfferingLookup){
@@ -103,15 +103,22 @@ public class ServerImpl implements ServerInterface {
 
     // Subscriptions
     public void subscribeForJobOfferings(ApplicantClientInterface clientRef, String areaOfInterest) {
-    	if(!subscribedClients.containsKey(clientRef)) {
-    		subscribedClients.put(clientRef, areaOfInterest);
-    	}
+        if(!subscribedClients.containsKey(areaOfInterest)) {
+            subscribedClients.put(areaOfInterest, new ArrayList<>());
+        }
+
+        if(!subscribedClients.get(areaOfInterest).contains(clientRef)) {
+            subscribedClients.get(areaOfInterest).add(clientRef);
+        }
     }
 
     public void subscribeForJobApplicants(CompanyClientInterface clientRef, String jobArea){
-    	if(!subscribedCompanies.containsKey(clientRef)) {
-    		subscribedCompanies.put(clientRef, jobArea);
-    	}
+        if(!subscribedCompanies.containsKey(jobArea)) {
+            subscribedCompanies.put(jobArea, new ArrayList<>());
+        }
+
+        if(!subscribedCompanies.get(jobArea).contains(clientRef)) {
+            subscribedCompanies.get(jobArea).add(clientRef);
+        }
     }
-  
 }
