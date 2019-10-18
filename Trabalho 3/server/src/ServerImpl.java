@@ -17,7 +17,7 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
     protected ServerImpl() throws RemoteException { }
 
     // Search
-    public ArrayList<JobOffering> searchJobOffering(JobOffering jobOfferingLookup){
+    public ArrayList<JobOffering> searchJobOffering(JobOffering jobOfferingLookup) {
         ArrayList<JobOffering> jobsFound = new ArrayList<>();
         
         for (Entry<String, JobOffering> jobEntry : jobOfferingHashMap.entrySet()) {
@@ -49,7 +49,11 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
 
         	if(subscribedCompanies.containsKey(curriculum.getArea())) {
         	    for(CompanyClientInterface company : subscribedCompanies.get(curriculum.getArea())) {
-        	        company.subscriptionCallback(curriculum);
+        	        try {
+                        company.subscriptionCallback(curriculum);
+                    } catch (Exception e) {
+        	            System.out.println("Exceção ao notificar cliente: " + e.getMessage());
+                    }
                 }
             }
         }
@@ -69,9 +73,12 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
 
             if(subscribedApplicants.containsKey(jobOffering.getArea())) {
                 for(ApplicantClientInterface applicant : subscribedApplicants.get(jobOffering.getArea())) {
-                    applicant.subscriptionCallback(jobOffering);
-
-                    System.out.println("\tEnviando notificação para um cliente");
+                    try {
+                        System.out.println("\tEnviando notificação para um cliente");
+                        applicant.subscriptionCallback(jobOffering);
+                    } catch (Exception e) {
+                        System.out.println("Exceção ao tentar notificar a companhia: " + e.getMessage());
+                    }
                 }
             }
         }

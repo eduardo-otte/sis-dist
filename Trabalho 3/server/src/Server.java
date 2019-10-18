@@ -6,7 +6,7 @@ public class Server {
         System.out.println("Inicializando servidor");
 
         try {
-            Registry nameServiceRegistry = LocateRegistry.createRegistry(1000);
+            Registry nameServiceRegistry = LocateRegistry.createRegistry(1092);
             nameServiceRegistry.list();
 
             ServerImpl server = new ServerImpl();
