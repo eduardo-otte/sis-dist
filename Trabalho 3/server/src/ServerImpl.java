@@ -1,16 +1,20 @@
 import models.Curriculum;
 import models.JobOffering;
 
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-public class ServerImpl implements ServerInterface {
+public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
     private HashMap<String, Curriculum> curriculumHashMap;
     private HashMap<String, JobOffering> jobOfferingHashMap;
 
     private HashMap<String, ArrayList<ApplicantClientInterface>> subscribedApplicants;
     private HashMap<String, ArrayList<CompanyClientInterface>> subscribedCompanies;
+
+    protected ServerImpl() throws RemoteException { }
 
     // Search
     public ArrayList<JobOffering> searchJobOffering(JobOffering jobOfferingLookup){
@@ -58,10 +62,16 @@ public class ServerImpl implements ServerInterface {
 
         if(!jobOfferingHashMap.containsKey(key)) {
             jobOfferingHashMap.put(key, jobOffering);
+            System.out.println("Nova oferta de emprego registrada");
+            System.out.println("Companhia: " + jobOffering.getCompanyName());
+            System.out.println("Área: " + jobOffering.getArea());
+            System.out.println("----------------");
 
             if(subscribedApplicants.containsKey(jobOffering.getArea())) {
                 for(ApplicantClientInterface applicant : subscribedApplicants.get(jobOffering.getArea())) {
                     applicant.subscriptionCallback(jobOffering);
+
+                    System.out.println("\tEnviando notificação para um cliente");
                 }
             }
         }
