@@ -47,6 +47,8 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
         if(!curriculumHashMap.containsKey(curriculum.getName())) {
         	curriculumHashMap.put(curriculum.getName(), curriculum);
 
+        	System.out.println("Currículo adicionado para: " + curriculum.getName());
+
         	if(subscribedCompanies.containsKey(curriculum.getArea())) {
         	    for(CompanyClientInterface company : subscribedCompanies.get(curriculum.getArea())) {
         	        try {
