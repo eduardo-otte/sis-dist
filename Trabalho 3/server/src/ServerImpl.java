@@ -8,11 +8,11 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
-    private HashMap<String, Curriculum> curriculumHashMap;
-    private HashMap<String, JobOffering> jobOfferingHashMap;
+    private HashMap<String, Curriculum> curriculumHashMap = new HashMap<>();
+    private HashMap<String, JobOffering> jobOfferingHashMap = new HashMap<>();
 
-    private HashMap<String, ArrayList<ApplicantClientInterface>> subscribedApplicants;
-    private HashMap<String, ArrayList<CompanyClientInterface>> subscribedCompanies;
+    private HashMap<String, ArrayList<ApplicantClientInterface>> subscribedApplicants = new HashMap<>();
+    private HashMap<String, ArrayList<CompanyClientInterface>> subscribedCompanies = new HashMap<>();
 
     protected ServerImpl() throws RemoteException { }
 

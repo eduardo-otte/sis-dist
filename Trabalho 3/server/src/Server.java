@@ -1,3 +1,5 @@
+import java.rmi.AlreadyBoundException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -6,15 +8,17 @@ public class Server {
         System.out.println("Inicializando servidor");
 
         try {
-            Registry nameServiceRegistry = LocateRegistry.createRegistry(1092);
+            Registry nameServiceRegistry = LocateRegistry.createRegistry(1099);
             nameServiceRegistry.list();
 
             ServerImpl server = new ServerImpl();
-            nameServiceRegistry.bind("Server", server);
+            nameServiceRegistry.bind("server", server);
 
             System.out.println("Servidor inicializado");
-        } catch (Exception e) {
-            System.out.println("Exceção ao iniciar o servidor: " + e.getMessage());
+        } catch (RemoteException e) {
+            System.out.println("RemoteException ao iniciar o servidor: " + e.getMessage());
+        } catch (AlreadyBoundException e) {
+            System.out.println("AlreadyBoundException ao inicar o servidor " + e.getMessage());
         }
     }
 }
