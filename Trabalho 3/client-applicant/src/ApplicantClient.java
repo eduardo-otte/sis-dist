@@ -131,11 +131,11 @@ public class ApplicantClient {
 	            	else {
 	            		for (int i=0; i<jobsAvaliable.size(); i++) {
 	            			System.out.println("Vaga de número " + (i+1));
-	            			System.out.println("Nome da empresa: " + jobsAvaliable.get(i).getCompanyName());
-	            			System.out.println("Contato: " + jobsAvaliable.get(i).getContact());
-	            			System.out.println("Área: " + jobsAvaliable.get(i).getArea());
-	            			System.out.println("Carga horária: " + jobsAvaliable.get(i).getWorkload());
-	            			System.out.println("Salário: " + jobsAvaliable.get(i).getSalary());
+	            			System.out.println(" - Nome da empresa: " + jobsAvaliable.get(i).getCompanyName());
+	            			System.out.println(" - Contato: " + jobsAvaliable.get(i).getContact());
+	            			System.out.println(" - Área: " + jobsAvaliable.get(i).getArea());
+	            			System.out.println(" - Carga horária: " + jobsAvaliable.get(i).getWorkload());
+	            			System.out.println(" - Salário: " + jobsAvaliable.get(i).getSalary());
 	            		}
 	            		
 	            	}

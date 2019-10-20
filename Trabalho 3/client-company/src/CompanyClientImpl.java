@@ -16,10 +16,10 @@ public class CompanyClientImpl extends UnicastRemoteObject implements CompanyCli
             this.workload = workload;
             this.intendedSalary = intendedSalary;
             */
-          System.out.print("Nome: " + curriculum.getName());
-          System.out.print("Contato: " + curriculum.getContact());
-          System.out.print("Area: " + curriculum.getArea());
-          System.out.print("Carga de trabalho: " + curriculum.getWorkload());
-          System.out.print("Salario pretendido: " + curriculum.getIntendedSalary());
+          System.out.println("Nome: " + curriculum.getName());
+          System.out.println("Contato: " + curriculum.getContact());
+          System.out.println("Area: " + curriculum.getArea());
+          System.out.println("Carga de trabalho: " + curriculum.getWorkload());
+          System.out.println("Salario pretendido: " + curriculum.getIntendedSalary());
     }
 }

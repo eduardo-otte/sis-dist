@@ -1,7 +1,8 @@
 import models.Curriculum;
 
-import java.util.ArrayList;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
-public interface CompanyClientInterface {
-    void subscriptionCallback(Curriculum curriculum);
+public interface CompanyClientInterface extends Remote {
+    void subscriptionCallback(Curriculum curriculum) throws RemoteException;
 }

@@ -16,11 +16,11 @@ public class ApplicantClientImpl extends UnicastRemoteObject implements Applican
             this.workload = workload;
             this.salary = salary;
             */
-          System.out.print("Nome da Empresa: " + jobOffering.getCompanyName());
-          System.out.print("Contato: " + jobOffering.getContact());
-          System.out.print("Area: " + jobOffering.getArea());
-          System.out.print("Carga de trabalho: " + jobOffering.getWorkload());
-          System.out.print("Salario pretendido: " + jobOffering.getSalary());
+          System.out.println("Nome da Empresa: " + jobOffering.getCompanyName());
+          System.out.println("Contato: " + jobOffering.getContact());
+          System.out.println("Area: " + jobOffering.getArea());
+          System.out.println("Carga de trabalho: " + jobOffering.getWorkload());
+          System.out.println("Salario pretendido: " + jobOffering.getSalary());
 
     }
 
