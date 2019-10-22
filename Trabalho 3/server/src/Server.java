@@ -15,6 +15,7 @@ public class Server {
             nameServiceRegistry.bind("server", server);
 
             System.out.println("Servidor inicializado");
+            System.out.println("----------------");
         } catch (RemoteException e) {
             System.out.println("RemoteException ao iniciar o servidor: " + e.getMessage());
         } catch (AlreadyBoundException e) {

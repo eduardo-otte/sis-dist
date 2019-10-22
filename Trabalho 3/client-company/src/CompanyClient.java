@@ -32,16 +32,16 @@ public class CompanyClient {
             while(!mayEnd) {
             	System.out.println("---------------------------");
 	            System.out.println("Selecione a opção desejada:");
-	            System.out.println("1)Enviar Oferta de emprego");
-	            System.out.println("2)Alterar dados de uma oferta de emprego");
-	            System.out.println("3)Checar currículos cadastrados");
-	            System.out.println("4)Cadastrar para envio de novos currículos");
-	            System.out.println("5)Encerrar");
+	            System.out.println("1) Enviar Oferta de emprego");
+	            System.out.println("2) Alterar dados de uma oferta de emprego");
+	            System.out.println("3) Checar currículos cadastrados");
+	            System.out.println("4) Cadastrar para notificação de novos currículos");
+	            System.out.println("5) Encerrar");
 	            option = Parser.parseIntegerInput("");
 	            
 	           	// 1) Cadastra uma oferta de emprego
 	            if(option == 1 ) {
-	            	System.out.print("Nome: ");
+	            	System.out.print("Nome da empresa: ");
 	            	input = keyboard.nextLine();
 	            	String companyName = input;
 	            	            	
@@ -72,14 +72,14 @@ public class CompanyClient {
 	            	int index = 0;
 	            	if(jobsOffered.size() > 1) {
 	            		System.out.println("Você tem " + jobsOffered.size() + " ofertas de emprego cadastradas. Qual você deseja modificaar?");
-		            	for (int i=0; i<jobsOffered.size(); i++) {
+		            	for (int i = 0; i < jobsOffered.size(); i++) {
 		            	    //companyName and workload can't change
 		            		System.out.println("Vaga " + (i+1));
 		            		System.out.println(" - Área " + jobsOffered.get(i).getArea());
 		            		System.out.println(" - Contato " + jobsOffered.get(i).getContact());
 		            		System.out.println(" - Salário " + jobsOffered.get(i).getSalary());
 			          	}
-		            	index = Parser.parseIntegerInput("");
+		            	index = Parser.parseIntegerInput("") - 1;
 	            	}
 	            	
 	            	System.out.println("Seu contato atual é " + jobsOffered.get(index).getContact());

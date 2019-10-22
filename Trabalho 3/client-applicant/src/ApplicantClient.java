@@ -31,11 +31,11 @@ public class ApplicantClient {
             while(!mayEnd) {
             	System.out.println("---------------------------");
 	            System.out.println("Selecione a opção desejada:");
-	            System.out.println("1)Enviar currículo");
-	            System.out.println("2)Alterar dados do currículo");
-	            System.out.println("3)Checar vagas cadastradas");
-	            System.out.println("4)Cadastrar para envio de novas ofertas de emprego");
-	            System.out.println("5)Encerrar");
+	            System.out.println("1) Enviar currículo");
+	            System.out.println("2) Alterar dados do currículo");
+	            System.out.println("3) Checar vagas cadastradas");
+	            System.out.println("4) Cadastrar para notificação de novas ofertas de emprego");
+	            System.out.println("5) Encerrar");
 	            option = Parser.parseIntegerInput("");
 	            
 	           
