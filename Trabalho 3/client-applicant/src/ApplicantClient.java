@@ -13,8 +13,8 @@ public class ApplicantClient {
         System.out.println("Inicializando cliente de empregado");
         boolean hasCurriculum = false;
         boolean mayEnd = false;
-        int option=-1;
-        String input = new String(); 
+        int option;
+        String input;
         
         Scanner keyboard = new Scanner(System.in);
        
@@ -36,91 +36,88 @@ public class ApplicantClient {
 	            System.out.println("3)Checar vagas cadastradas");
 	            System.out.println("4)Cadastrar para envio de novas ofertas de emprego");
 	            System.out.println("5)Encerrar");
-	            option = keyboard.nextInt();
+	            option = Parser.parseIntegerInput("");
 	            
 	           
-	            if(option==1 && hasCurriculum) {
-	            	System.out.println("Você já tem um currículo cadastrado.Se você quiser modificar seus dados, escolha a opção 2");
+	            if(option == 1 && hasCurriculum) {
+	            	System.out.println("Você já tem um currículo cadastrado. Se você quiser modificar seus dados, escolha a opção 2");
 	            }
-	            else if(option==1 && !hasCurriculum) {
-	            	System.out.println("Nome:");
-	            	input = keyboard.next();
+	            else if(option == 1 && !hasCurriculum) {
+	            	System.out.print("Nome: ");
+	            	input = keyboard.nextLine();
 	            	curriculum.setName(input);
 	            	            	
-	            	System.out.println("Contato:");
-	            	input = keyboard.next();
+	            	System.out.print("Contato: ");
+	            	input = keyboard.nextLine();
 	            	curriculum.setContact(input);
 	            	
-	            	System.out.println("Área de interesse:");
-	            	input = keyboard.next();
+	            	System.out.print("Área de interesse: ");
+	            	input = keyboard.nextLine();
 	            	curriculum.setArea(input);
-	            	
-	            	System.out.println("Carga horária:");
-	            	input = keyboard.next();
-	            	curriculum.setWorkload(Integer.parseInt(input));
-	            	
-	            	System.out.println("Salário pretendido:");
-	            	input = keyboard.next();
-	            	curriculum.setIntendedSalary(Float.parseFloat(input));            	
+
+	            	int workload = Parser.parseIntegerInput("Carga horária: ");
+	            	curriculum.setWorkload(workload);
+
+	            	float salary = Parser.parseFloatInput("Salário pretendido: ");
+	            	curriculum.setIntendedSalary(salary);
 	            	            	
-	            	hasCurriculum=true;
+	            	hasCurriculum = true;
 	                System.out.println("Currículo criado!");
 	                serverInterface.registerCurriculum(curriculum);
 	            }
-	            if(option==2 && !hasCurriculum) { //alterar dados do curriculo
+
+				// 2) Alterar dados do curriculo
+	            if(option == 2 && !hasCurriculum) {
 	            	System.out.println("Você ainda não tem um currículo cadastrado. Se você quiser enviar um, escolha a opção 1");
 	            }
-	            if(option==2 && hasCurriculum) {
-	            	System.out.println("Seu contato atual é "+ curriculum.getContact());
+
+	            if(option == 2 && hasCurriculum) {
+	            	System.out.println("Seu contato atual é " + curriculum.getContact());
 	            	System.out.println("Você deseja modifica-lo? S/N");
-	            	input = keyboard.next().trim();
+	            	input = keyboard.nextLine();
 	            	if(input.equals("S")) {
-	            		System.out.println("Digite seu novo contato:");
-	                	input = keyboard.next();
+	            		System.out.print("Digite seu novo contato:");
+	                	input = keyboard.nextLine();
 	                	curriculum.setContact(input);
 	            	}
 	            	
-	            	System.out.println("Sua Área de interesse atual é "+ curriculum.getArea());
+	            	System.out.println("Sua Área de interesse atual é " + curriculum.getArea());
 	            	System.out.println("Você deseja modifica-la? S/N");
-	            	input = keyboard.next().trim();
+	            	input = keyboard.nextLine();
 	            	if(input.equals("S")) {
-	            		System.out.println("Digite sua nova área de interesse:");
-	                	input = keyboard.next();
+	            		System.out.print("Digite sua nova área de interesse: ");
+	                	input = keyboard.nextLine();
 	                	curriculum.setArea(input);
 	            	}
 	            	
-	            	System.out.println("Sua carga horária atual é "+ curriculum.getWorkload());
+	            	System.out.println("Sua carga horária atual é " + curriculum.getWorkload());
 	            	System.out.println("Você deseja modifica-la? S/N");
-	            	input = keyboard.next().trim();
+	            	input = keyboard.nextLine();
 	            	if(input.equals("S")) {
-	            		System.out.println("Digite sua nova carga horária? S/N");
-	                	input = keyboard.next();
-	                	curriculum.setWorkload(Integer.parseInt(input));
+	                	int newWorkload = Parser.parseIntegerInput("Digite sua nova carga horária: ");
+	                	curriculum.setWorkload(newWorkload);
 	            	}
 	            	
-	            	System.out.println("Sua pretenção salarial atual é "+ curriculum.getIntendedSalary());
-	            	System.out.println("Você deseja modifica-lo? S/N");
-	            	input = keyboard.next().trim();
+	            	System.out.println("Sua pretenção salarial atual é " + curriculum.getIntendedSalary());
+	            	System.out.println("Você deseja modifica-la? S/N");
+	            	input = keyboard.nextLine();
 	            	if(input.equals("S")) {
-	            		System.out.println("Digite sua nova pretenção salarial? S/N");
-	                	input = keyboard.next();
-	                	curriculum.setIntendedSalary(Float.parseFloat(input));      
+	                	float newSalary = Parser.parseFloatInput("Digite sua nova pretenção salarial: ");
+	                	curriculum.setIntendedSalary(newSalary);
 	            	}
 	            	
 	            	serverInterface.alterCurriculum(curriculum);
 	            	System.out.println("Seu currículo foi alterado");
 	            }
-	            else if (option==3) {	//3)Checar vagas cadastradas
+
+				// 3) Checar vagas cadastradas
+	            else if (option == 3) {
 	            	//Consulta de vagas de emprego, indicando filtros como área de interesse e salário mínimo pretendido
-	            	System.out.println("Qual a área de interesse a ser pesquisada?");
-	            	input = keyboard.next();
+	            	System.out.print("Qual a área de interesse a ser pesquisada? ");
+	            	input = keyboard.nextLine();
 	            	String area = input;
-	            	//System.out.println("Qual a carga horária pretendida?");
-	            	//input = keyboard.next();
-	            	//int workload = Integer.parseInt(input);
-	            	System.out.println("Qual a o salário mínimo pretendido?");
-	            	input = keyboard.next();
-	            	float salary = Float.parseFloat(input);
+
+	            	float salary = Parser.parseFloatInput("Qual a o salário mínimo pretendido? ");
 	            	
 	            	JobOffering jobOfferingLookup = new JobOffering("", "", area, 0, salary);
 	            	ArrayList<JobOffering> jobsAvaliable = serverInterface.searchJobOffering(jobOfferingLookup);
@@ -129,7 +126,8 @@ public class ApplicantClient {
 	            		System.out.println("Não há vagas disponíveis que se encaixam nos padrões da pesquisa. Se você quiser se inscrever para receber vagas futuras, escolha a opção 4");
 	            	}
 	            	else {
-	            		for (int i=0; i<jobsAvaliable.size(); i++) {
+	            		System.out.println("\nVagas encontradas: " + jobsAvaliable.size());
+	            		for (int i = 0; i < jobsAvaliable.size(); i++) {
 	            			System.out.println("Vaga de número " + (i+1));
 	            			System.out.println(" - Nome da empresa: " + jobsAvaliable.get(i).getCompanyName());
 	            			System.out.println(" - Contato: " + jobsAvaliable.get(i).getContact());
@@ -140,9 +138,11 @@ public class ApplicantClient {
 	            		
 	            	}
 	            }
-	            else if(option==4) {	//4)Cadastrar para envio de novas ofertas de emprego
-	            	System.out.println("Qual a área de interesse que você gostaria de cadastrar?");
-	            	input = keyboard.next();
+
+				// 4) Cadastrar para envio de novas ofertas de emprego
+	            else if(option == 4) {
+	            	System.out.print("Qual a área de interesse que você gostaria de cadastrar? ");
+	            	input = keyboard.nextLine();
 	            	String areaOfInterest = input;
 	            	serverInterface.subscribeForJobOfferings(client, areaOfInterest);
 	            }
