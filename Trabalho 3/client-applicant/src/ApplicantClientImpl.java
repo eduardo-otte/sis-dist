@@ -7,6 +7,10 @@ public class ApplicantClientImpl extends UnicastRemoteObject implements Applican
 
     protected ApplicantClientImpl() throws RemoteException { }
 
+    /**
+     * Recebimento de notificação do servidor quando uma nova oferta de emprego é cadastrada na área de interesse desejada
+     * @param jobOffering Nova oferta de emprego
+     */
     public void subscriptionCallback(JobOffering jobOffering) {
         System.out.println("---------------------------");
         System.out.println("Novo Oferta de Emprego!");

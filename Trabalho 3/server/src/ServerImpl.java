@@ -17,6 +17,12 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
     protected ServerImpl() throws RemoteException { }
 
     // Search
+
+    /**
+     * Procura de empregos ofertados que coincidam com os parâmetros pretendidos
+     * @param jobOfferingLookup: Parâmetros para a procura de emprego
+     * @return: Lista de empregos que coincidam com os parâmetros passados
+     */
     public ArrayList<JobOffering> searchJobOffering(JobOffering jobOfferingLookup) {
         ArrayList<JobOffering> jobsFound = new ArrayList<>();
         
@@ -30,6 +36,11 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
         return jobsFound;
 	}
 
+    /**
+     * Procura de currículos que coincidam com a área pretendida
+     * @param areaOfInterest: Área de interesse a ser procurada
+     * @return: Lista de currículos que coincidam com a Área pretendida
+     */
     public ArrayList<Curriculum> searchCurriculum(String areaOfInterest){
         ArrayList<Curriculum> curriculumFound = new ArrayList<>();
         
@@ -43,6 +54,11 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
     }
 
     // Registration
+
+    /**
+     * Registro de um novo currículo no sistema
+     * @param curriculum: Currículo a ser cadastrado
+     */
     public void registerCurriculum(Curriculum curriculum) {
         if(!curriculumHashMap.containsKey(curriculum.getName())) {
         	curriculumHashMap.put(curriculum.getName(), curriculum);
@@ -66,6 +82,11 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
 
     /* Key for jobOfferingHashMap is "[companyName]-[area]"
        Move into JavaDoc later */
+
+    /**
+     * Registro de uma nova vaga de emprego no sistema
+     * @param jobOffering: Vaga de emprego a ser registrada
+     */
     public void registerJobOffering(JobOffering jobOffering){
         String key = jobOffering.getCompanyName() + "-" + jobOffering.getArea();
 
@@ -89,7 +110,10 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
         }
     }
 
-    // Alter registration
+    /**
+     * Alteração de um currículo
+     * @param newCurriculum: Currículo com novos dados para ser atualizado no sistema
+     */
     public void alterCurriculum(Curriculum newCurriculum){
     	/*
         this.name = name; --Key : can't change
@@ -113,6 +137,10 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
 		}
     }
 
+    /**
+     * Alterçao de emprego ofertgado
+     * @param newJobOffering: Emprego ofertado com novos dados para ser atualizados no sistema
+     */
     public void alterJobOffering(JobOffering newJobOffering){
     	/*
         this.companyName = companyName; --Key : can't change
@@ -136,6 +164,12 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
 	}
 
     // Subscriptions
+
+    /**
+     * Cadastro do "cliente aplicante" para recebimento de notificações de oferta de emprego
+     * @param clientRef: Referência do cliente
+     * @param areaOfInterest: Área de interesse do cliente
+     */
     public void subscribeForJobOfferings(ApplicantClientInterface clientRef, String areaOfInterest) {
         if(!subscribedApplicants.containsKey(areaOfInterest)) {
             subscribedApplicants.put(areaOfInterest, new ArrayList<>());
@@ -146,6 +180,11 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
         }
     }
 
+    /**
+     * Cadastro do "cliente companhia" para recebimento de notificações de currículos
+     * @param clientRef: Referência do cliente
+     * @param jobArea: Área de interesse do cliente
+     */
     public void subscribeForJobApplicants(CompanyClientInterface clientRef, String jobArea){
         if(!subscribedCompanies.containsKey(jobArea)) {
             subscribedCompanies.put(jobArea, new ArrayList<>());

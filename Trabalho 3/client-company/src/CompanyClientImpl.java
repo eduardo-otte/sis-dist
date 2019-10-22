@@ -7,6 +7,10 @@ public class CompanyClientImpl extends UnicastRemoteObject implements CompanyCli
 
     protected CompanyClientImpl() throws RemoteException { }
 
+    /**
+     * Recebimento de notificação do servidor quando um novo currículo é cadastrado na área de interesse desejada
+     * @param curriculum Novo currículo cadastrado
+     */
     public void subscriptionCallback(Curriculum curriculum) {
         System.out.println("---------------------------");
         System.out.println("\nNovo Currículo!");

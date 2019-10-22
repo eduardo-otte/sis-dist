@@ -1,5 +1,6 @@
 import java.util.Scanner;
 
+// Funções utilitárias que encapsulam o parsing de valores numéricos fornecidos pelo usuário
 public class Parser {
     public static int parseIntegerInput(String message) {
         Scanner keyboard = new Scanner(System.in);
