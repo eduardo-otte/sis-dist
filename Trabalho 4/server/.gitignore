@@ -1,0 +1,6 @@
+# Javascript modules
+node_modules
+package-lock.json
+
+# TS to JS compilation results
+dist
