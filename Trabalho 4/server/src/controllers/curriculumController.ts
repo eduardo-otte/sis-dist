@@ -1,9 +1,18 @@
 import { Request, Response } from "express";
 import { Curriculum } from "../entities/curriculum";
 
+interface CurriculumCollection {
+    [key: string]: any;
+}
+
 class CurriculumController {
+    static curriculums: CurriculumCollection = {};
+
     static find = async (req: Request, res: Response) => {
-        // find a curriculum
+        res.status(200).send(CurriculumController.curriculums);
+    }
+
+    static register = async (req: Request, res: Response) => {
         let curriculum: Curriculum = {
             area: "Test area",
             contact: "Test contact",
@@ -12,7 +21,14 @@ class CurriculumController {
             workload: 40
         };
 
-        res.status(200).send(curriculum);
+        const { name, area } = curriculum;
+
+        if(!CurriculumController.curriculums[area]) {
+            CurriculumController.curriculums[area] = {};
+        }
+
+        CurriculumController.curriculums[area][name] = curriculum;
+        return res.status(200).send();
     }
 }
 
