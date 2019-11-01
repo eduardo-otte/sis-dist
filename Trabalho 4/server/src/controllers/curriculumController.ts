@@ -28,7 +28,35 @@ class CurriculumController {
         }
 
         CurriculumController.curriculums[area][name] = curriculum;
-        return res.status(200).send();
+        return res.status(200).send("Curriculum registered successfully");
+    }
+
+    static update = async (req: Request, res: Response) => {
+        const { area, contact, intendedSalary, name, workload } = req.body;
+
+        if(!area || !name) {
+            return res.status(400).send("Bad request");
+        }
+
+        if(!CurriculumController.curriculums[area][name]) {
+            return res.status(404).send("Curriculum not found");
+        }
+
+        let curriculum = CurriculumController.curriculums[area][name];
+
+        if(contact) {
+            curriculum.contact = contact;
+        }
+
+        if(intendedSalary) {
+            curriculum.intendedSalary = intendedSalary;
+        }
+
+        if(workload) {
+            curriculum.workload = workload;
+        }
+
+        return res.status(200).send("Curriculum updated successfully");
     }
 }
 
