@@ -27,7 +27,11 @@ class JobOfferController {
             JobOfferController.jobOffers[area] = {};
         }
 
-        JobOfferController.jobOffers[area][companyName] = jobOffer;
+        if(!JobOfferController.jobOffers[area][companyName]) {
+            JobOfferController.jobOffers[area][companyName] = [];
+        }
+
+        JobOfferController.jobOffers[area][companyName].push(jobOffer);
         return res.status(200).send("Job offer registered successfully");
     }
 
@@ -39,7 +43,7 @@ class JobOfferController {
         }
 
         if(!JobOfferController.jobOffers[area][companyName]) {
-            return res.status(404).send("Job offer not found");
+            return res.status(404).send("Company not found");
         }
 
         let jobOffer = JobOfferController.jobOffers[area][companyName];
