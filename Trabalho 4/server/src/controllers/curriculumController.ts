@@ -7,13 +7,17 @@ interface CurriculumCollection {
 
 class CurriculumController {
     static curriculums: CurriculumCollection = {};
+    static uid: number = 0;
 
     static find = async (req: Request, res: Response) => {
         res.status(200).send(CurriculumController.curriculums);
     }
 
     static register = async (req: Request, res: Response) => {
+        const id = CurriculumController.uid++;
+
         let curriculum: Curriculum = {
+            id,
             area: "Test area",
             contact: "Test contact",
             intendedSalary: 100000,

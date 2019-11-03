@@ -7,13 +7,17 @@ interface JobOfferCollection {
 
 class JobOfferController {
     static jobOffers: JobOfferCollection = {};
+    static uid: number = 0;
 
     static find = async (req: Request, res: Response) => {
         return res.status(200).send(JobOfferController.jobOffers);
     }
 
     static register = async (req: Request, res: Response) => {
+        const id = JobOfferController.uid++;
+
         const jobOffer: JobOffer = {
+            id,
             area: "Test area",
             companyName: "Test & Testers Inc.",
             contact: "Test contact",
