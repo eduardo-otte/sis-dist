@@ -36,29 +36,33 @@ class CurriculumController {
     }
 
     static update = async (req: Request, res: Response) => {
-        const { area, contact, intendedSalary, name, workload } = req.body;
+        const { id, area, contact, intendedSalary, name, workload } = req.body;
 
         if(!area || !name) {
             return res.status(400).send("Bad request");
+        }
+
+        if(!CurriculumController.curriculums[area]) {
+            return res.status(404).send("Area not found");
         }
 
         if(!CurriculumController.curriculums[area][name]) {
             return res.status(404).send("Curriculum not found");
         }
 
-        let curriculum = CurriculumController.curriculums[area][name];
+        const filteredCurriculums: Array<Curriculum> = CurriculumController.curriculums.filter((curriculum: Curriculum) => curriculum.id === id);
 
-        if(contact) {
-            curriculum.contact = contact;
+        if(filteredCurriculums.length === 0) {
+            return res.status(404).send("Curriculum not found");
         }
 
-        if(intendedSalary) {
-            curriculum.intendedSalary = intendedSalary;
-        }
+        let curriculum = filteredCurriculums[0];
 
-        if(workload) {
-            curriculum.workload = workload;
-        }
+        curriculum.contact = contact || curriculum.contact;
+
+        curriculum.intendedSalary = intendedSalary || curriculum.intendedSalary;
+
+        curriculum.workload = workload || curriculum.workload;
 
         return res.status(200).send("Curriculum updated successfully");
     }

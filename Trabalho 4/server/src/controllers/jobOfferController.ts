@@ -40,29 +40,33 @@ class JobOfferController {
     }
 
     static update = async (req: Request, res: Response) => {
-        const { area, companyName, contact, salary, workload } = req.body;
+        const { id, area, companyName, contact, salary, workload } = req.body;
 
-        if(!area || !companyName) {
+        if(!area || !companyName || !id) {
             return res.status(400).send("Bad request");
+        }
+
+        if(!JobOfferController.jobOffers[area]) {
+            return res.status(404).send("Area not found");
         }
 
         if(!JobOfferController.jobOffers[area][companyName]) {
             return res.status(404).send("Company not found");
         }
 
-        let jobOffer = JobOfferController.jobOffers[area][companyName];
+        const filteredJobOffers: Array<JobOffer> = JobOfferController.jobOffers.filter((jobOffer: JobOffer) => jobOffer.id === id);
 
-        if(contact) {
-            jobOffer.contact = contact;
+        if(filteredJobOffers.length === 0) {
+            return res.status(404).send("Job offer not found");
         }
 
-        if(salary) {
-            jobOffer.salary = salary;
-        }
+        let jobOffer = filteredJobOffers[0];
 
-        if(workload) {
-            jobOffer.workload = salary;
-        }
+        jobOffer.contact = contact || jobOffer.contact;
+
+        jobOffer.salary = salary || jobOffer.salary;
+
+        jobOffer.workload = workload || jobOffer.workload;
 
         return res.status(200).send("Job offer updated successfully");
     }
