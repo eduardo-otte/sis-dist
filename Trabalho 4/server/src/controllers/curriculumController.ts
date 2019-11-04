@@ -28,15 +28,21 @@ class CurriculumController {
     }
 
     static register = async (req: Request, res: Response) => {
+        const { name, area, contact, intendedSalary, workload } = req.body;
+
+        if(!name || !area || !contact || !intendedSalary || !workload) {
+            return res.status(400).send("Malformed register request");
+        }
+
         const id = CurriculumController.uid++;
 
         let curriculum: Curriculum = {
             id,
-            area: "Test area",
-            contact: "Test contact",
-            intendedSalary: 100000,
-            name: "Test McTest",
-            workload: 40
+            name,
+            area,
+            contact,
+            intendedSalary,
+            workload,
         };
 
         CurriculumController.curriculums.push(curriculum);

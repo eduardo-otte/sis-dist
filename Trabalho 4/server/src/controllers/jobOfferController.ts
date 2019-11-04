@@ -28,20 +28,25 @@ class JobOfferController {
     }
 
     static register = async (req: Request, res: Response) => {
+        const { area, companyName, contact, salary, workload } = req.body;
+
+        if(!area || !companyName || !contact|| !salary || !workload) {
+            return res.status(400).send("Malformed register request");
+        }
+
         const id = JobOfferController.uid++;
 
         const jobOffer: JobOffer = {
             id,
-            area: "Test area",
-            companyName: "Test & Testers Inc.",
-            contact: "Test contact",
-            salary: 100000,
-            workload: 10000
+            area,
+            companyName,
+            contact,
+            salary,
+            workload,
         };
 
-        const { companyName, area } = jobOffer;
-
         JobOfferController.jobOffers.push(jobOffer);
+        
         return res.status(200).send("Job offer registered successfully");
     }
 
