@@ -2,12 +2,29 @@ import { Request, Response } from "express";
 import { JobOffer } from "../entities/jobOffer";
 
 class JobOfferController {
-    // static jobOffers: JobOfferCollection = {};
     static jobOffers: Array<JobOffer> = [];
     static uid: number = 1;
 
     static find = async (req: Request, res: Response) => {
-        return res.status(200).send(JobOfferController.jobOffers);
+        const { id, area, companyName, salary, workload } = req.query;
+
+        const filteredJobOffers: Array<JobOffer> = JobOfferController.jobOffers.filter(
+            (jobOffer: JobOffer) => {
+                if(id && jobOffer.id !== id) return false;
+                if(area && jobOffer.area !== area) return false;
+                if(companyName && jobOffer.companyName !== companyName) return false;
+                if(salary && jobOffer.salary < salary) return false;
+                if(workload && jobOffer.workload > workload) return false;
+
+                return true;
+            }
+        );
+
+        if(filteredJobOffers.length === 0) {
+            return res.status(404).send("No job offers found with required parameters");
+        }
+
+        return res.status(200).send(filteredJobOffers);
     }
 
     static register = async (req: Request, res: Response) => {
@@ -29,7 +46,7 @@ class JobOfferController {
     }
 
     static update = async (req: Request, res: Response) => {
-        const { id, area, contact, salary, workload } = req.body;
+        const { id, contact, salary, workload } = req.body;
 
         if(!id) {
             return res.status(400).send("Bad request");

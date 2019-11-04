@@ -6,7 +6,25 @@ class CurriculumController {
     static uid: number = 1;
 
     static find = async (req: Request, res: Response) => {
-        res.status(200).send(CurriculumController.curriculums);
+        const { id, area, name, intendedSalary, workload } = req.query;
+
+        const filteredCurriculums = CurriculumController.curriculums.filter(
+            (curriculum: Curriculum) => {
+                if(id && curriculum.id !== id) return false;
+                if(area && curriculum.area !== area) return false;
+                if(name && curriculum.name !== name) return false;
+                if(intendedSalary && curriculum.intendedSalary > intendedSalary) return false;
+                if(workload && curriculum.workload < workload) return false;
+
+                return true;
+            }
+        );
+
+        if(filteredCurriculums.length === 0) {
+            return res.status(404).send("No curriculums found with given parameters");
+        }
+
+        return res.status(200).send(filteredCurriculums);
     }
 
     static register = async (req: Request, res: Response) => {
