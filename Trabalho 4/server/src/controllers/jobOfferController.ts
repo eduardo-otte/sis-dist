@@ -10,7 +10,7 @@ class JobOfferController {
 
         const filteredJobOffers: Array<JobOffer> = JobOfferController.jobOffers.filter(
             (jobOffer: JobOffer) => {
-                if(id && jobOffer.id !== id) return false;
+                if(id && jobOffer.id !== parseInt(id)) return false;
                 if(area && jobOffer.area !== area) return false;
                 if(companyName && jobOffer.companyName !== companyName) return false;
                 if(salary && jobOffer.salary < salary) return false;

@@ -10,7 +10,7 @@ class CurriculumController {
 
         const filteredCurriculums = CurriculumController.curriculums.filter(
             (curriculum: Curriculum) => {
-                if(id && curriculum.id !== id) return false;
+                if(id && curriculum.id !== parseInt(id)) return false;
                 if(area && curriculum.area !== area) return false;
                 if(name && curriculum.name !== name) return false;
                 if(intendedSalary && curriculum.intendedSalary > intendedSalary) return false;
@@ -51,7 +51,7 @@ class CurriculumController {
     }
 
     static update = async (req: Request, res: Response) => {
-        const { id, area, contact, intendedSalary, name, workload } = req.body;
+        const { id, contact, intendedSalary, workload } = req.body;
 
         if(!id) {
             return res.status(400).send("Bad request");
