@@ -1,17 +1,11 @@
-import requests
-import json
+import rest_operations as ro
 
 url = 'http://localhost:3000'
 
 def main():
-    r = requests.get(url + '/curriculum/get')
-    print(r.status_code)
-    print(r.text)
+    response = ro.get('curriculum', { })
 
-    res = json.loads(r.text)
-    print(res)
-
-    print(res[0]["area"])
+    print(response)
 
 if __name__ == "__main__":
     main()
