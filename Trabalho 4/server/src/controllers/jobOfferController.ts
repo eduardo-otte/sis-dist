@@ -56,9 +56,9 @@ class JobOfferController {
         if(!id) {
             return res.status(400).send("Bad request");
         }
-
+        
         const filteredJobOffers: Array<JobOffer> = JobOfferController.jobOffers.filter(
-            (jobOffer: JobOffer) => jobOffer.id === id
+            (jobOffer: JobOffer) => jobOffer.id === parseInt(id)
         );
 
         if(filteredJobOffers.length === 0) {

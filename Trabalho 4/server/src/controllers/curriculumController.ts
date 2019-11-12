@@ -58,7 +58,7 @@ class CurriculumController {
         }
 
         const filteredCurriculums: Array<Curriculum> = CurriculumController.curriculums.filter(
-            (curriculum: Curriculum) => curriculum.id === id
+            (curriculum: Curriculum) => curriculum.id === parseInt(id)
         );
 
         if(filteredCurriculums.length === 0) {
