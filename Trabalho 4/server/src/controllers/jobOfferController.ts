@@ -47,7 +47,7 @@ class JobOfferController {
 
         JobOfferController.jobOffers.push(jobOffer);
         
-        return res.status(200).send("Job offer registered successfully");
+        return res.status(200).send(jobOffer);
     }
 
     static update = async (req: Request, res: Response) => {
@@ -71,7 +71,7 @@ class JobOfferController {
         jobOffer.salary = salary || jobOffer.salary;
         jobOffer.workload = workload || jobOffer.workload;
 
-        return res.status(200).send("Job offer updated successfully");
+        return res.status(200).send(jobOffer);
     }
 }
 

@@ -47,7 +47,7 @@ class CurriculumController {
 
         CurriculumController.curriculums.push(curriculum);
 
-        return res.status(200).send("Curriculum registered successfully");
+        return res.status(200).send(curriculum);
     }
 
     static update = async (req: Request, res: Response) => {
@@ -71,7 +71,7 @@ class CurriculumController {
         curriculum.intendedSalary = intendedSalary || curriculum.intendedSalary;
         curriculum.workload = workload || curriculum.workload;
 
-        return res.status(200).send("Curriculum updated successfully");
+        return res.status(200).send(curriculum);
     }
 }
 
