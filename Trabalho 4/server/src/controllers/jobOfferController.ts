@@ -6,6 +6,8 @@ class JobOfferController {
     static uid: number = 1;
 
     static find = async (req: Request, res: Response) => {
+        console.log("/jobOffer/get: request received");
+
         const { id, area, companyName, salary, workload } = req.query;
 
         const filteredJobOffers: Array<JobOffer> = JobOfferController.jobOffers.filter(
@@ -20,7 +22,10 @@ class JobOfferController {
             }
         );
 
+        console.log(`/jobOffer/get: ${filteredJobOffers.length} registers found`);
+
         if(filteredJobOffers.length === 0) {
+            console.log("/jobOffer/get: no entries found");
             return res.status(404).send("No job offers found with required parameters");
         }
 
@@ -28,9 +33,12 @@ class JobOfferController {
     }
 
     static register = async (req: Request, res: Response) => {
+        console.log("/jobOffer/register: request received");
+
         const { area, companyName, contact, salary, workload } = req.body;
 
         if(!area || !companyName || !contact|| !salary || !workload) {
+            console.log("/jobOffer/register: bad request");
             return res.status(400).send("Malformed register request");
         }
 
@@ -46,14 +54,19 @@ class JobOfferController {
         };
 
         JobOfferController.jobOffers.push(jobOffer);
+
+        console.log(`/jobOffer/register: object added with id ${jobOffer.id}`);
         
         return res.status(200).send(jobOffer);
     }
 
     static update = async (req: Request, res: Response) => {
+        console.log("/jobOffer/update: request received");
+
         const { id, contact, salary, workload } = req.body;
 
         if(!id) {
+            console.log("/jobOffer/update: bad request");
             return res.status(400).send("Bad request");
         }
         
@@ -62,6 +75,7 @@ class JobOfferController {
         );
 
         if(filteredJobOffers.length === 0) {
+            console.log("/jobOffer/update: no curriculums found");
             return res.status(404).send("Job offer not found");
         }
 
@@ -70,6 +84,8 @@ class JobOfferController {
         jobOffer.contact = contact || jobOffer.contact;
         jobOffer.salary = salary || jobOffer.salary;
         jobOffer.workload = workload || jobOffer.workload;
+
+        console.log(`/jobOffer/update: object with id ${jobOffer.id} updated`);
 
         return res.status(200).send(jobOffer);
     }

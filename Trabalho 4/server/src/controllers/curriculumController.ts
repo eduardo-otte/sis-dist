@@ -6,6 +6,8 @@ class CurriculumController {
     static uid: number = 1;
 
     static find = async (req: Request, res: Response) => {
+        console.log("/curriculum/get: request received");
+        
         const { id, area, name, intendedSalary, workload } = req.query;
 
         const filteredCurriculums = CurriculumController.curriculums.filter(
@@ -20,7 +22,10 @@ class CurriculumController {
             }
         );
 
+        console.log(`/curriculum/get: ${filteredCurriculums.length} registers found`);
+
         if(filteredCurriculums.length === 0) {
+            console.log("/curriculum/get: no entries found");
             return res.status(404).send("No curriculums found with given parameters");
         }
 
@@ -28,9 +33,12 @@ class CurriculumController {
     }
 
     static register = async (req: Request, res: Response) => {
+        console.log("/curriculum/register: request received");
+
         const { name, area, contact, intendedSalary, workload } = req.body;
 
         if(!name || !area || !contact || !intendedSalary || !workload) {
+            console.log("/curriculum/register: bad request");
             return res.status(400).send("Malformed register request");
         }
 
@@ -47,13 +55,18 @@ class CurriculumController {
 
         CurriculumController.curriculums.push(curriculum);
 
+        console.log(`/curriculum/register: object added with id ${curriculum.id}`);
+
         return res.status(200).send(curriculum);
     }
 
     static update = async (req: Request, res: Response) => {
+        console.log("/curriculum/update: request received");
+
         const { id, contact, intendedSalary, workload } = req.body;
 
         if(!id) {
+            console.log("/curriculum/update: bad request");
             return res.status(400).send("Bad request");
         }
 
@@ -62,6 +75,7 @@ class CurriculumController {
         );
 
         if(filteredCurriculums.length === 0) {
+            console.log("/curriculum/update: no curriculums found");
             return res.status(404).send("Curriculum not found");
         }
 
@@ -70,6 +84,8 @@ class CurriculumController {
         curriculum.contact = contact || curriculum.contact;
         curriculum.intendedSalary = intendedSalary || curriculum.intendedSalary;
         curriculum.workload = workload || curriculum.workload;
+
+        console.log(`/curriculum/update: object with id ${curriculum.id} updated`);
 
         return res.status(200).send(curriculum);
     }
