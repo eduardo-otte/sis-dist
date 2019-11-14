@@ -25,13 +25,13 @@ def main():
 
         elif (selectedOption == 1) and (not hasCurriculum):
 
-            contact = input("Nome: ")
+            name = input("Nome: ")
             area = input("Área de Interesse: ")
             contact = input("Contato: ")
             intendedSalary = float(input("Salário pretendido: "))
             workload = int(input("Carga horária pretendida: "))
 
-            curriculum['name'] = contact
+            curriculum['name'] = name
             curriculum['area'] = area
             curriculum['contact'] = contact
             curriculum['intendedSalary'] = intendedSalary
