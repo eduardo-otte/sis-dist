@@ -19,10 +19,11 @@ def main():
 
         selectedOption = int(input())
 
+        #1) Enviar currículo
         if (selectedOption == 1) and hasCurriculum:
             print("Você já possui um curriculo cadastrado. Se você quiser atualizar seus dados, selecione a opção 2")
 
-        if (selectedOption == 1) and (not hasCurriculum):
+        elif (selectedOption == 1) and (not hasCurriculum):
 
             contact = input("Nome: ")
             area = input("Área de Interesse: ")
@@ -40,6 +41,7 @@ def main():
 
             ro.register('curriculum', curriculum)
 
+        #2) Alterar dados do currículo
         elif (selectedOption == 2) and (not hasCurriculum):
             print("Você não possui um curriculo cadastrado. Para fazer um cadastro, selecione a opção 1")
 
@@ -61,7 +63,22 @@ def main():
 
             if(curriculum):
                 curriculum['id'] = curriculumId
-                ro.update('jobOffer', curriculum)
+                ro.update('curriculum', curriculum) #antes tava ro.update('jobOffer', curriculum)
+
+        #3) Checar vagas cadastradas
+        elif (selectedOption == 3):
+            #Consulta de vagas de emprego, indicando filtros como área de interesse e salário mínimo pretendido
+
+            jobWanted = { }
+
+            userInput = input("Qual a área procurada? ")
+            jobWanted['area'] = userInput
+
+            userInput = float(input("Qual o salário pretendido? "))
+            jobWanted['intendedSalary'] = userInput
+
+            if(jobWanted):
+                ro.get('jobOffer', jobWanted)
 
 if __name__ == "__main__":
     main()
