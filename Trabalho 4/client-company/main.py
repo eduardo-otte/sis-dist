@@ -44,7 +44,7 @@ def main():
             salary = float(input("Salário: "))
             workload = int(input("Carga horária: "))
 
-            jobOffer['name'] = companyName
+            jobOffer['companyName'] = companyName
             jobOffer['area'] = area
             jobOffer['contact'] = contact
             jobOffer['salary'] = salary
