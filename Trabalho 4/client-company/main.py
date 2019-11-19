@@ -3,12 +3,26 @@ from types import *
 
 url = 'http://localhost:3000'
 
+
+
+def printCurriculums(curriculums):
+    i = 1
+    for curriculum in curriculums:
+        print()
+        print("Vaga: " + str(i))
+        print(" - Nome: " + curriculum['name'])
+        print(" - Área: " + curriculum['area'])
+        print(" - Contato: " + curriculum['contact'])
+        print(" - Salário Pretendido: " + str(curriculum['intendedSalary']))
+        print(" - Carga horária: " + str(curriculum['workload']))
+        i += 1
+
+
 def main():
     selectedOption = 0
     hasJobOffers = False
     jobOffers = []
     jobOffersCounter = 0
-    jobOffersId = None
 
     while(selectedOption != 4):
         print("---------------------------")
@@ -21,7 +35,7 @@ def main():
         selectedOption = int(input())
 
         #1) Enviar Oferta de emprego
-        if (selectedOption == 1) and (not hasJobOffers):
+        if (selectedOption == 1):
             jobOffer = {}
             #area, companyName, contact, salary, workload
             companyName = input("Nome da Companhia: ")
@@ -36,11 +50,9 @@ def main():
             jobOffer['salary'] = salary
             jobOffer['workload'] = workload
 
+            jobOffers.append(ro.register('jobOffer', jobOffer))
             hasJobOffers = True
-            jobOffers.append(jobOffer)
             jobOffersCounter+=1
-
-            ro.register('jobOffer', jobOffers)
 
         #2) Alterar dados da Oferta de emprego
         elif (selectedOption == 2) and (not hasJobOffers):
@@ -53,10 +65,10 @@ def main():
             if(jobOffersCounter>1):
                 print("Você tem "+ jobOffersCounter + " ofertas. Selecione qual você deseja alterar ")
                 for i in range(jobOffersCounter):
-                    print("Vaga " + i)
-                    print(" - Área " + jobOffers[i][area]);
-                    print(" - Contato " + jobOffers[i][contact]);
-                    print(" - Salário " + jobOffers[i][salary]);
+                    print("Vaga " + str(i))
+                    print(" - Área " + jobOffers[i]['area']);
+                    print(" - Contato " + jobOffers[i]['contact']);
+                    print(" - Salário " + str(jobOffers[i]['salary']));
                 index = int(input())
 
             jobOffer = { }
@@ -73,6 +85,8 @@ def main():
             if userInput.lower() == 's':
                 jobOffer['intendedSalary'] = float(input("Salário pretendido: "))
 
+            jobOffer['id'] = jobOffers[index]['id']
+
             if(jobOffer):
                 jobOffer['id'] = jobOffers[index]
                 ro.update('jobOffer', jobOffer)
@@ -87,7 +101,17 @@ def main():
             curriculumWanted['area'] = userInput
 
             if(curriculumWanted):
-                ro.get('curriculum', curriculumWanted)
+                response = ro.get('curriculum', curriculumWanted)
+
+                if response["status_code"] == 400:
+                    print("Parâmetros de pesquisa incorretos")
+                elif response["status_code"] == 404:
+                    print("Nenhum currúculo encontrado com os filtros desejados")
+                elif response["status_code"] == 200:
+                    printCurriculums(response["body"])
+                else:
+                    print("A pesquisa retornou erro com status: " + response["status_code"])
+
 
 if __name__ == "__main__":
     main()

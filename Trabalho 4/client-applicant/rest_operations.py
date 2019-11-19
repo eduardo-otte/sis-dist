@@ -18,22 +18,14 @@ def get(entity, filter_parameters):
     except:
         print("Error while performing GET")
 
+    get_response = {
+        "status_code": response.status_code
+    }
+
     if response.status_code == 200:
-        print("GET performed successfully")
-        parsed_response = json.loads(response.text)
-        print(parsed_response)
+        get_response["body"] = json.loads(response.text)
 
-        return parsed_response
-
-    elif response.status_code == 400:
-        print("Bad request")
-
-    elif response.status_code == 404:
-        print("Not found")
-
-    else:
-        print("Request return status: " + response.status_code)
-
+    return get_response
 
 def register(entity, data):
     request_url = url + '/' + entity + '/register'
@@ -44,17 +36,11 @@ def register(entity, data):
         print("Error while performing POST")
 
     if response.status_code == 200:
-        print("POST performed successfully")
-        print(response.text)
-        return response.text
-
-    elif response.status_code == 400:
-        print("Bad request: " + response.text)
+        parsed_body = json.loads(response.text)
+        return parsed_body
 
     else:
-        print("Request return status: " + response.status_code)
-        print(response.text)
-
+        return response.status_code
 
 def update(entity, data):
     request_url = url + '/' + entity + '/update'
@@ -65,17 +51,8 @@ def update(entity, data):
         print("Error while performing POST")
 
     if response.status_code == 200:
-        print("POST performed successfully")
-        print(response.text)
-
-        return response.text
-
-    elif response.status_code == 400:
-        print("Bad request: " + response.text)
-
-    elif response.status_code == 404:
-        print("Not found")
+        parsed_body = json.loads(response.text)
+        return parsed_body
 
     else:
-        print("Request return status: " + response.status_code)
-        print(response.text)
+        return response.status_code

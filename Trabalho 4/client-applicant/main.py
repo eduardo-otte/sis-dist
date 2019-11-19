@@ -3,11 +3,25 @@ from types import *
 
 url = 'http://localhost:3000'
 
+
+
+def printJobs(jobs):
+    i = 1
+    for job in jobs:
+        print()
+        print("Vaga: " + str(i))
+        print(" - Nome da empresa: " + job['companyName'])
+        print(" - Área: " + job['area'])
+        print(" - Contato: " + job['contact'])
+        print(" - Salário : " + str(job['salary']))
+        print(" - Carga horária: " + str(job['workload']))
+        i += 1
+
+
 def main():
     selectedOption = 0
     hasCurriculum = False
     curriculum = { }
-    curriculumId = None
 
     while(selectedOption != 4):
         print("---------------------------")
@@ -39,7 +53,7 @@ def main():
 
             hasCurriculum = True
 
-            ro.register('curriculum', curriculum)
+            curriculum = ro.register('curriculum', curriculum)
 
         #2) Alterar dados do currículo
         elif (selectedOption == 2) and (not hasCurriculum):
@@ -47,23 +61,23 @@ def main():
 
         elif (selectedOption == 2) and hasCurriculum:
 
-            curriculum = { }
+            curriculumUpdate = { }
 
             userInput = input("Você gostaria de atualizar seu contato (S/N)? ")
             if userInput.lower() == 's':
-                curriculum['contact'] = input("Contato: ")
+                curriculumUpdate['contact'] = input("Contato: ")
 
             userInput = input("Você gostaria de atualizar seu salário pretendido (S/N)? ")
             if userInput.lower() == 's':
-                curriculum['intendedSalary'] = float(input("Salário pretendido: "))
+                curriculumUpdate['intendedSalary'] = float(input("Salário pretendido: "))
 
             userInput = input("Você gostaria de atualizar sua carga horária pretendida (S/N)? ")
             if userInput.lower() == 's':
-                curriculum['workload'] = int(input("Carga horária pretendida: "))
+                curriculumUpdate['workload'] = int(input("Carga horária pretendida: "))
 
-            if(curriculum):
-                curriculum['id'] = curriculumId
-                ro.update('curriculum', curriculum) #antes tava ro.update('jobOffer', curriculum)
+            if(curriculumUpdate):
+                curriculumUpdate['id'] = curriculum['id']
+                curriculum = ro.update('curriculum', curriculumUpdate) #antes tava ro.update('jobOffer', curriculum)
 
         #3) Checar vagas cadastradas
         elif (selectedOption == 3):
@@ -78,7 +92,15 @@ def main():
             jobWanted['intendedSalary'] = userInput
 
             if(jobWanted):
-                ro.get('jobOffer', jobWanted)
+                response = ro.get('jobOffer', jobWanted)
+                if response["status_code"] == 400:
+                    print("Parâmetros de pesquisa incorretos")
+                elif response["status_code"] == 404:
+                    print("Nenhuma vaga encontrada com os filtros desejados")
+                elif response["status_code"] == 200:
+                    printJobs(response["body"])
+                else:
+                    print("A pesquisa retornou erro com status: " + response["status_code"])
 
 if __name__ == "__main__":
     main()
