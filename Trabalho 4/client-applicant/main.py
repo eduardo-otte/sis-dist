@@ -1,9 +1,6 @@
 import rest_operations as ro
-from types import *
 
 url = 'http://localhost:3000'
-
-
 
 def printJobs(jobs):
     i = 1
@@ -17,13 +14,34 @@ def printJobs(jobs):
         print(" - Carga horária: " + str(job['workload']))
         i += 1
 
+def getClientCurriculum(name):
+    searchFilter = {
+        "name": name
+    }
+
+    response = ro.get("curriculum", searchFilter)
+
+    if 'body' in response:
+        print("Um currículo foi encontrado com o seu nome!")
+        return response['body']
+
+    else:
+        print("Nenhum currículo foi encontrado com o seu nome. Que tal criar um?")
+        return { }
+
 
 def main():
     selectedOption = 0
     hasCurriculum = False
-    curriculum = { }
+
+    clientName = input("Insira seu nome: ")
+    curriculum = getClientCurriculum(clientName)
+
+    if curriculum:
+        hasCurriculum = True
 
     while(selectedOption != 4):
+        print()
         print("---------------------------")
         print("Selecione a opção desejada:")
         print("1) Enviar currículo")
@@ -38,14 +56,15 @@ def main():
             print("Você já possui um curriculo cadastrado. Se você quiser atualizar seus dados, selecione a opção 2")
 
         elif (selectedOption == 1) and (not hasCurriculum):
+            print()
+            print("Cadastro de currículo")
 
-            name = input("Nome: ")
             area = input("Área de Interesse: ")
             contact = input("Contato: ")
             intendedSalary = float(input("Salário pretendido: "))
             workload = int(input("Carga horária pretendida: "))
 
-            curriculum['name'] = name
+            curriculum['name'] = clientName
             curriculum['area'] = area
             curriculum['contact'] = contact
             curriculum['intendedSalary'] = intendedSalary
@@ -60,6 +79,8 @@ def main():
             print("Você não possui um curriculo cadastrado. Para fazer um cadastro, selecione a opção 1")
 
         elif (selectedOption == 2) and hasCurriculum:
+            print()
+            print("Atualização de currículo")
 
             curriculumUpdate = { }
 
@@ -77,11 +98,14 @@ def main():
 
             if(curriculumUpdate):
                 curriculumUpdate['id'] = curriculum['id']
-                curriculum = ro.update('curriculum', curriculumUpdate) #antes tava ro.update('jobOffer', curriculum)
+                curriculum = ro.update('curriculum', curriculumUpdate)
 
         #3) Checar vagas cadastradas
         elif (selectedOption == 3):
             #Consulta de vagas de emprego, indicando filtros como área de interesse e salário mínimo pretendido
+
+            print()
+            print("Consulta de vagas")
 
             jobWanted = { }
 

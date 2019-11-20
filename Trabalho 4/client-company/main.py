@@ -1,9 +1,6 @@
 import rest_operations as ro
-from types import *
 
 url = 'http://localhost:3000'
-
-
 
 def printCurriculums(curriculums):
     i = 1
@@ -17,28 +14,54 @@ def printCurriculums(curriculums):
         print(" - Carga horária: " + str(curriculum['workload']))
         i += 1
 
+def getCompanyOffers(companyName):
+    searchFilter = {
+        "companyName": companyName
+    }
+
+    response = ro.get("jobOffer", searchFilter)
+
+    if 'body' in response:
+        print("Foram encontradas " + str(len(response['body'])) + 
+            " ofertas de emprego no nome de sua companhia")
+        
+        return response['body']
+
+    else:
+        print("Nenhuma oferta de emprego foi encontrada em nome de sua companhia. Que tal cadastrar uma?")
 
 def main():
     selectedOption = 0
     hasJobOffers = False
-    jobOffers = []
+    
+    companyName = input("Insira o nome de sua companhia: ")
+    jobOffers = getCompanyOffers(companyName)
     jobOffersCounter = 0
 
+    if jobOffers:
+        jobOffersCounter = len(jobOffers)
+        hasJobOffers = True
+    else:
+        jobOffers = []
+
     while(selectedOption != 4):
+        print()
         print("---------------------------")
         print("Selecione a opção desejada:")
         print("1) Enviar Oferta de emprego")
         print("2) Alterar dados da oferta de emprego")
-        print("3) Checar currúculos cadastradas")
+        print("3) Checar currúculos cadastrados")
         print("4) Encerrar")
 
         selectedOption = int(input())
 
         #1) Enviar Oferta de emprego
         if (selectedOption == 1):
+            print()
+            print("Cadastro de oferta de emprego")
+
             jobOffer = {}
-            #area, companyName, contact, salary, workload
-            companyName = input("Nome da Companhia: ")
+            
             area = input("Área de Interesse: ")
             contact = input("Contato: ")
             salary = float(input("Salário: "))
@@ -52,24 +75,27 @@ def main():
 
             jobOffers.append(ro.register('jobOffer', jobOffer))
             hasJobOffers = True
-            jobOffersCounter+=1
+            jobOffersCounter += 1
 
         #2) Alterar dados da Oferta de emprego
         elif (selectedOption == 2) and (not hasJobOffers):
             print("Você não possui ofertas de emprego cadastrado. Para fazer um cadastro, selecione a opção 1")
 
         elif (selectedOption == 2) and hasJobOffers:
+            print()
+            print("Atualização de oferta de emprego")
 
             index = 0
 
-            if(jobOffersCounter>1):
-                print("Você tem "+ jobOffersCounter + " ofertas. Selecione qual você deseja alterar ")
+            if(jobOffersCounter > 1):
+                print("Você tem " + jobOffersCounter + " ofertas de emprego cadastradas. Selecione qual você deseja alterar ")
                 for i in range(jobOffersCounter):
-                    print("Vaga " + str(i))
-                    print(" - Área " + jobOffers[i]['area']);
-                    print(" - Contato " + jobOffers[i]['contact']);
-                    print(" - Salário " + str(jobOffers[i]['salary']));
-                index = int(input())
+                    print()
+                    print("Vaga " + str(i + 1))
+                    print(" - Área " + jobOffers[i]['area'])
+                    print(" - Contato " + jobOffers[i]['contact'])
+                    print(" - Salário " + str(jobOffers[i]['salary']))
+                index = int(input()) - 1
 
             jobOffer = { }
 
@@ -88,12 +114,15 @@ def main():
             jobOffer['id'] = jobOffers[index]['id']
 
             if(jobOffer):
-                jobOffer['id'] = jobOffers[index]
-                ro.update('jobOffer', jobOffer)
+                updatedJobOffer = ro.update('jobOffer', jobOffer)
+                jobOffers[index] = updatedJobOffer
 
         #3) Checar curriculos cadastradas
         elif (selectedOption == 3):
             #Consulta de vagas de emprego, indicando filtros como área de interesse
+
+            print()
+            print("consulta de currículos")
 
             curriculumWanted = { }
 
@@ -106,7 +135,7 @@ def main():
                 if response["status_code"] == 400:
                     print("Parâmetros de pesquisa incorretos")
                 elif response["status_code"] == 404:
-                    print("Nenhum currúculo encontrado com os filtros desejados")
+                    print("Nenhum currículo encontrado com os filtros desejados")
                 elif response["status_code"] == 200:
                     printCurriculums(response["body"])
                 else:
