@@ -22,9 +22,9 @@ def getCompanyOffers(companyName):
     response = ro.get("jobOffer", searchFilter)
 
     if 'body' in response:
-        print("Foram encontradas " + str(len(response['body'])) + 
+        print("Foram encontradas " + str(len(response['body'])) +
             " ofertas de emprego no nome de sua companhia")
-        
+
         return response['body']
 
     else:
@@ -33,7 +33,7 @@ def getCompanyOffers(companyName):
 def main():
     selectedOption = 0
     hasJobOffers = False
-    
+
     companyName = input("Insira o nome de sua companhia: ")
     jobOffers = getCompanyOffers(companyName)
     jobOffersCounter = 0
@@ -61,7 +61,7 @@ def main():
             print("Cadastro de oferta de emprego")
 
             jobOffer = {}
-            
+
             area = input("Área de Interesse: ")
             contact = input("Contato: ")
             salary = float(input("Salário: "))
@@ -88,7 +88,7 @@ def main():
             index = 0
 
             if(jobOffersCounter > 1):
-                print("Você tem " + jobOffersCounter + " ofertas de emprego cadastradas. Selecione qual você deseja alterar ")
+                print("Você tem " + str(jobOffersCounter) + " ofertas de emprego cadastradas. Selecione qual você deseja alterar ")
                 for i in range(jobOffersCounter):
                     print()
                     print("Vaga " + str(i + 1))
