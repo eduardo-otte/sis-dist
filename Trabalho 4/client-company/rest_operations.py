@@ -3,6 +3,12 @@ import json
 
 url = 'http://localhost:3000'
 
+'''
+    Encapsulamento da operação GET para busca de entidades
+    entity: string -> entidade com a qual se deseja interagir (curriculum ou jobOffer)
+    filter_parameters: dicionário -> parâmetros de filtro para aplicar na busca de entidades,
+                                     eventualmente transformado em uma query string
+'''
 def get(entity, filter_parameters):
     query_string = '?'
     for key in filter_parameters.keys():
@@ -27,6 +33,12 @@ def get(entity, filter_parameters):
 
     return get_response
 
+'''
+    Encapsulamento da operação POST para registro de entidades
+    entity: string -> entidade com a qual se deseja interagir (curriculum ou jobOffer)
+    data: dicionário -> contém os dados a respeito da entidade que será registrada,
+                        passado como body da request
+'''
 def register(entity, data):
     request_url = url + '/' + entity + '/register'
 
@@ -42,6 +54,12 @@ def register(entity, data):
     else:
         return response.status_code
 
+'''
+    Encapsulamento da operação POST para atualização de entidades
+    entity: string -> entidade com a qual se deseja interagir (curriculum ou jobOffer)
+    data: dicionário -> contém os dados da entidade a serem atualizados, incluindo seu
+                        ID único. É passado no body da request
+'''
 def update(entity, data):
     request_url = url + '/' + entity + '/update'
 

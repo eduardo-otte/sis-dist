@@ -1,7 +1,10 @@
+# Módulo que encapsula as operações REST
 import rest_operations as ro
 
 url = 'http://localhost:3000'
 
+# Função para imprimir uma lista de ofertas de empregos
+# e seus dados
 def printJobs(jobs):
     i = 1
     for job in jobs:
@@ -14,6 +17,8 @@ def printJobs(jobs):
         print(" - Carga horária: " + str(job['workload']))
         i += 1
 
+# Função que busca o currículo de um determinado aplicante
+# Chamada no início do programa
 def getClientCurriculum(name):
     searchFilter = {
         "name": name
@@ -34,6 +39,7 @@ def main():
     selectedOption = 0
     hasCurriculum = False
 
+    # Obtém o nome do cliente, como um "login"
     clientName = input("Insira seu nome: ")
     curriculum = getClientCurriculum(clientName)
 
@@ -102,8 +108,6 @@ def main():
 
         #3) Checar vagas cadastradas
         elif (selectedOption == 3):
-            #Consulta de vagas de emprego, indicando filtros como área de interesse e salário mínimo pretendido
-
             print()
             print("Consulta de vagas")
 
