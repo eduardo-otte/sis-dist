@@ -1,10 +1,23 @@
 import { Request, Response } from "express";
 import { Curriculum } from "../entities/curriculum";
 
+// Classe que fornece as operações de interação com currículos
 class CurriculumController {
     static curriculums: Array<Curriculum> = [];
     static uid: number = 1;
 
+    // Operação de busca currículos de acordo com um conjunto de filtros fornecidos
+    // Todos os campos são opcionais e fornecidos por query string
+    // Se nenhum parâmetro for fornecido, o método retorna todos os currículos cadastrados
+    // 200: OK, 404: nenhum currículo encontrado com os filtros fornecidos
+    // Parâmetros de busca:
+    // {
+    //     id: number,
+    //     area: string,
+    //     name: string,
+    //     intendedSalary: number,
+    //     workload: number
+    // }
     static find = async (req: Request, res: Response) => {
         console.log("/curriculum/get: request received");
         
@@ -32,6 +45,18 @@ class CurriculumController {
         return res.status(200).send(filteredCurriculums);
     }
 
+    // Operação de registro de currículos
+    // Todos os campos são obrigatórios e fornecidos no formato JSON
+    // Um ID único é gerado para cada currículo
+    // 200: OK, 400: request malformado
+    // Campos de registro:
+    // {
+    //     name: string,
+    //     area: string,
+    //     contact: string,
+    //     intendedSalary: number,
+    //     workload: number
+    // }
     static register = async (req: Request, res: Response) => {
         console.log("/curriculum/register: request received");
 
@@ -60,6 +85,18 @@ class CurriculumController {
         return res.status(200).send(curriculum);
     }
 
+    // Operação de atualização de currículos já registrados
+    // O currículo a ser atualizado é determinado por seu ID único
+    // Apenas alguns campos podem ser atualizados
+    // São atualizados somente os campos que forem fornecidos na request
+    // Request no formato JSON
+    // 200: OK, 400: request malformada, 404: nenhum currículo encontrado para o ID fornecido
+    // Campos de atualização
+    // {
+    //     contact: string,
+    //     intendedSalary: number,
+    //     workload: number
+    // }
     static update = async (req: Request, res: Response) => {
         console.log("/curriculum/update: request received");
 
